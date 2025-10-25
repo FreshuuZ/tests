@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel tras i mat — Elis</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0097a9">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <img src="icons/icon-192.png" alt="Elis" class="brand-logo">
+      <span class="brand-title">Panel tras i mat</span>
+    </div>
+
+    <button id="themeToggle" class="theme-toggle" aria-label="Zmień motyw">
+      <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1111.21 3
+                7 7 0 0021 12.79z"/>
+      </svg>
+      <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" 
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/>
+        <line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+    </button>
+  </header>
+
+  <main class="app-main">
+    <section class="card">
+      <h2>🚚 Wybierz trasę</h2>
+      <select id="routeSelect">
+        <option value="">— wybierz trasę —</option>
+      </select>
+    </section>
+
+    <section class="card">
+      <h2>🧶 Brakująca mata podstawowa</h2>
+      <input type="text" id="baseSearch" placeholder="🔍 Szukaj maty..." disabled>
+      <select id="baseMatSelect" disabled></select>
+    </section>
+
+    <section class="card">
+      <h2>🔄 Zamiennik</h2>
+      <input type="text" id="altSearch" placeholder="🔍 Szukaj zamiennika..." disabled>
+      <select id="altMatSelect" disabled></select>
+    </section>
+
+    <section class="card">
+      <h2>#️⃣ Ilość mat</h2>
+      <div class="qty-row">
+        <button id="qtyDec" class="btn-secondary" aria-label="Zmniejsz">−</button>
+        <input type="number" id="qty" min="1" max="100" value="1" inputmode="numeric">
+        <button id="qtyInc" class="btn-secondary" aria-label="Zwiększ">+</button>
+      </div>
+        <button id="addBtn" class="btn-primary" disabled>
+          <span class="btn-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+          </span>
+          <span class="btn-label">Dodaj do listy zmian</span>
+        </button>
+    </section>
+
+    <section>
+      <h2 class="section-title">📋 Lista zmian</h2>
+      <div id="changesList" class="list"></div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>Created by Dominik Bocian</span>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h3>Edytuj ilość</h3>
+      <input type="number" id="editQtyInput" min="1" max="100">
+      <div class="modal-actions">
+        <button id="editCancel" class="btn-secondary">Anuluj</button>
+        <button id="editSave" class="btn-primary">Zapisz</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="deleteModal" class="modal">
+    <div class="modal-content">
+      <h3>Potwierdź usunięcie</h3>
+      <p id="deleteModalText" style="text-align: center; margin-bottom: 16px; line-height: 1.5;">
+        Na pewno chcesz usunąć tę zmianę?
+      </p>
+      <div class="modal-actions">
+        <button id="deleteCancel" class="btn-secondary">Anuluj</button>
+        <button id="deleteConfirm" class="btn-danger">Usuń</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="deleteGroupModal" class="modal">
+    <div class="modal-content">
+      <h3>Potwierdzenie usunięcia trasy</h3> 
+      <p id="deleteGroupModalText" style="text-align: center; margin-bottom: 16px; line-height: 1.5;">
+        Na pewno usunąć całą grupę zmian dla tej trasy?
+      </p>
+      <div class="modal-actions">
+        <button id="deleteGroupCancel" class="btn-secondary">Anuluj</button>
+        <button id="deleteGroupConfirm" class="btn-danger">Usuń trasę</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

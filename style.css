@@ -1,0 +1,638 @@
+:root {
+  /* Elis palette */
+  --primary: #0097a9;    /* teal */
+  --accent:  #e30613;    /* red */
+  --text:    #333333;    /* dark gray */
+  --muted:   #6b7280;    /* neutral gray */
+  --bg:      #f4f6f8;    /* light background */
+
+  /* UI */
+  --radius: 12px;
+  --shadow: 0 6px 14px rgba(0,0,0,0.08);
+  /* Kolor dla przycisku usuwania całości (pomocniczy dla primary/danger) */
+  --delete-all-bg: #fef2f2;
+  --delete-all-color: #b91c1c;
+  --delete-all-border: #fca5a5;
+}
+
+/* Layout base: footer stays bottom */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Nagłówek (bez zmian) */
+.app-header {
+  background: linear-gradient(90deg, var(--primary), #00b6c3),
+              repeating-linear-gradient(
+                135deg,
+                rgba(255,255,255,0.08),
+                rgba(255,255,255,0.08) 6px,
+                transparent 6px,
+                transparent 12px
+              );
+  color: #fff;
+  padding: 14px 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: #fff;
+  padding: 4px;
+  object-fit: contain;
+}
+body.dark .brand-logo { background: #2a2a2a; }
+.brand-title {
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.3px;
+  color: #fff;
+}
+.theme-toggle {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  transition: background 0.2s ease, transform 0.2s ease;
+  color: #fff;
+}
+.theme-toggle:hover { background: rgba(255,255,255,0.15); }
+.theme-toggle:active { transform: scale(0.9); }
+.theme-toggle svg {
+  width: 22px;
+  height: 22px;
+  display: none;
+  color: inherit;
+}
+body.light .theme-toggle .icon-sun { display: block; }
+body.light .theme-toggle .icon-moon { display: none; }
+body.dark .theme-toggle .icon-moon { display: block; }
+body.dark .theme-toggle .icon-sun { display: none; }
+.app-main {
+  flex: 1;
+  padding: 16px;
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+}
+h2 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: var(--primary);
+}
+.section-title {
+  margin: 8px 0 12px 4px;
+  color: var(--text);
+  font-weight: 600;
+}
+.card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.card:active { transform: scale(0.99); }
+select, input[type="text"], input[type="number"] {
+  width: 100%;
+  padding: 14px;
+  margin-top: 6px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+}
+input::placeholder { color: #9aa0a6; }
+.qty-row {
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+  margin-bottom: 10px;
+}
+button {
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border 0.2s ease;
+}
+
+/* ZMIANA: Styl przycisku Dodaj/btn-primary (Light Mode) */
+#addBtn.btn-primary {
+  background: #fff;
+  color: var(--muted); /* Domyślnie szary tekst */
+  border: 1px solid #d1d5db;
+}
+#addBtn.btn-primary:hover {
+  background: #f9fafb;
+  color: var(--primary); /* Niebieski po najechaniu */
+  border: 1px solid #bfe7eb;
+}
+#addBtn:disabled {
+  background: #f3f4f6 !important;
+  color: #9ca3af !important;
+  border: 1px solid #d1d5db !important;
+  cursor: not-allowed;
+}
+
+/* ZMIANA: Styl przycisku Dodaj/btn-primary (Dark Mode) */
+body.dark #addBtn.btn-primary {
+  background: #2d2d2d;
+  color: var(--muted); /* Domyślnie szary tekst */
+  border: 1px solid #3a3a3a;
+}
+body.dark #addBtn.btn-primary:hover {
+  background: #3a3a3a;
+  color: var(--primary); /* Niebieski po najechaniu */
+}
+body.dark #addBtn:disabled {
+  background: #2d2d2d !important;
+  color: #6b7280 !important;
+  border: 1px solid #3a3a3a !important;
+}
+
+/* Przyciski Outline (Edytuj ilość) */
+.btn-outline {
+  background: #fff;
+  color: var(--muted); /* Domyślnie szary tekst */
+  border: 1px solid #d1d5db;
+}
+.btn-outline:hover {
+  background: #f9fafb;
+  color: var(--primary); /* Niebieski po najechaniu */
+  border: 1px solid #bfe7eb;
+}
+/* Przycisk Edytuj ilość - Dark Mode */
+body.dark .btn-outline {
+  background: #2d2d2d;
+  color: var(--muted); /* Domyślnie szary tekst */
+  border: 1px solid #3a3a3a;
+}
+body.dark .btn-outline:hover {
+  background: #3a3a3a;
+  color: var(--primary); /* Niebieski po najechaniu */
+}
+
+/* Style dla modali (nie ruszamy, ale używają .btn-primary, który jest tu niżej) */
+.modal .btn-primary {
+  background: #fff;
+  color: var(--primary);
+  border: 1px solid #bfe7eb;
+}
+.modal .btn-primary:hover {
+  background: #f9fafb;
+}
+body.dark .modal .btn-primary {
+  background: #2d2d2d;
+  color: var(--primary);
+  border: 1px solid #3a3a3a;
+}
+body.dark .modal .btn-primary:hover {
+  background: #3a3a3a;
+}
+
+/* Przyciski Secondary/Danger (bez zmian) */
+.btn-secondary {
+  background: #f9fafb;
+  color: #444;
+  border: 1px solid #d1d5db;
+}
+.btn-secondary:hover { background: #e5e7eb; }
+body.dark .btn-secondary {
+  background: #28454a;
+  color: #d9f2f4;
+  border: 1px solid #3a3a3a;
+}
+body.dark .btn-secondary:hover { background: #33575d; }
+.btn-danger {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+.btn-danger:hover { background: #fee2e2; }
+body.dark .btn-danger {
+  background: #3a2a2b;
+  color: #ffb3ba;
+  border: 1px solid #5b3b3f;
+}
+body.dark .btn-danger:hover { background: #4a2f32; }
+
+/* Nowy styl przycisku usuwania całości */
+.btn-delete-group {
+    background: #fef2f2; /* Light mode */
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    width: 100%;
+    margin-top: 8px; 
+    border-radius: 0 0 var(--radius) var(--radius); 
+}
+.btn-delete-group:hover {
+    background: #fee2e2;
+}
+body.dark .btn-delete-group {
+    background: #3a2a2b;
+    color: #ffb3ba;
+    border: 1px solid #5b3b3f;
+    border-top: 1px solid #5b3b3f;
+}
+body.dark .btn-delete-group:hover {
+    background: #4a2f32;
+}
+
+
+#addBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+#addBtn .btn-icon {
+  display: none;
+  width: 18px;
+  height: 18px;
+}
+#addBtn:not(:disabled) .btn-icon { display: inline-flex; }
+#addBtn .btn-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.icon-sun path,
+.icon-sun circle {
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
+/* * LISTA ZMIAN */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.list-card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 12px;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInUp 0.28s ease forwards;
+}
+@keyframes fadeInUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+.list-card:active { transform: scale(0.99); } 
+.list-card.empty-state {
+    text-align: center;
+    font-weight: 500;
+    color: var(--muted); 
+}
+body.dark .list-card {
+    background: #2a2a2a; 
+    border: 1px solid #333;
+}
+.list-card.empty-state {
+  padding: 24px 12px; 
+}
+
+
+.list-card .meta-label {
+  color: var(--muted);
+}
+.route-group {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  background: #fff;
+  overflow: hidden; 
+  width: 100%;
+  transition: all 0.2s ease;
+}
+body.dark .route-group {
+  background: #2a2a2a;
+  border: 1px solid #333;
+}
+.route-header {
+  background: var(--primary);
+  color: #fff;
+  padding: 14px 16px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 18px;
+}
+.route-header:hover {
+  background: #008191; 
+}
+body.dark .route-header {
+  background: linear-gradient(90deg, #004f55, #006d77);
+}
+body.dark .route-header:hover {
+  background: linear-gradient(90deg, #005f69, #007d88);
+}
+.route-body {
+  transform: scaleY(0);
+  transform-origin: top;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: transform 0.3s ease, opacity 0.3s ease, max-height 0.3s ease;
+}
+.route-group.open .route-body {
+  transform: scaleY(1);
+  opacity: 1;
+  max-height: 1000px; 
+}
+.route-header .route-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.route-header .arrow {
+  transition: transform 0.3s ease;
+  width: 18px;
+  height: 18px;
+  stroke-width: 3;
+}
+.route-group.open .route-header .arrow {
+  transform: rotate(90deg);
+}
+.route-change {
+  border-top: 1px solid #e5e7eb;
+  padding: 14px 16px;
+  transition: all 0.25s ease-out; 
+  background: #fcfcfc; 
+}
+.route-change:first-child {
+  border-top: none;
+}
+body.dark .route-change {
+  border-top-color: #3a3a3a;
+  background: #333333; 
+}
+
+/* NOWE STYLES */
+
+/* Zmiana 1: Kompaktowy, biały badge w nagłówku trasy (tylko liczba) */
+.route-header .route-meta .badge {
+    padding: 2px 8px; 
+    font-size: 15px; 
+    background: rgba(255, 255, 255, 0.2); 
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+body.dark .route-header .route-meta .badge {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+
+.change-details {
+  display: flex; 
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* Usunięcie .change-details-qty i powiązanych stylów */
+
+
+.change-meta-row {
+  display: grid;
+  grid-template-columns: 90px 1fr; 
+  align-items: baseline;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.change-meta-label {
+  color: var(--muted);
+}
+.change-meta-value {
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+body.dark .change-meta-value {
+  color: var(--text);
+}
+
+/* Zmiana 2: Styl dla badge ilości umieszczonego INLINE w Zamienniku */
+.inline-qty {
+    /* Używamy domyślnego stylu badge, ale upewniamy się, że jest dobrze wyrównany */
+    margin-left: 8px; /* Odsuwamy od tekstu maty */
+    font-size: 13px;
+    padding: 4px 8px;
+    /* Domyślny styl badge wystarczy:
+        background: #fff0f1;
+        color: var(--accent);
+        border: 1px solid #f5c2c7;
+    */
+}
+body.dark .inline-qty {
+    /* Domyślny styl dark mode badge wystarczy:
+        background: #3a2a2b;
+        color: #ffb3ba;
+        border-color: #5b3b3f;
+    */
+}
+
+
+.change-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.change-actions button {
+  flex: 1; 
+  padding: 10px 12px; 
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.badge {
+  display: inline-block;
+  background: #fff0f1;
+  color: var(--accent);
+  border: 1px solid #f5c2c7;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+body.dark .badge {
+  background: #3a2a2b;
+  color: #ffb3ba;
+  border-color: #5b3b3f;
+}
+
+/* Footer i Modale */
+.app-footer {
+  margin-top: auto;
+  text-align: center;
+  padding: 12px;
+  font-size: 14px;
+  color: var(--muted);
+  background: #eef3f4;
+  border-top: 1px solid #dbe6e8;
+}
+body.dark .app-footer {
+  background: #2a2a2a;
+  color: #aaa;
+  border-top-color: #333;
+}
+
+/* Modal (bez zmian, ale dostosowują się do nowych stylów przycisków) */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: var(--radius);
+  width: 90%;
+  max-width: 340px;
+  box-shadow: var(--shadow);
+  animation: fadeInUp 0.25s ease;
+}
+body.dark .modal-content {
+  background: #2a2a2a;
+  border: 1px solid #333;
+}
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 18px;
+  color: var(--primary);
+  text-align: center;
+}
+.modal-content input[type="number"] {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  margin-bottom: 14px;
+  text-align: center;
+}
+body.dark .modal-content input[type="number"] {
+  background: #1f1f1f;
+  border: 1px solid #3a3a3a;
+  color: var(--text);
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+}
+.modal-actions .btn-primary,
+.modal-actions .btn-secondary,
+.modal-actions .btn-danger {
+  flex: 1;
+}
+
+/* --- NOWOCZESNY TOAST (Notyfikacja) --- */
+.toast {
+  position: fixed;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99999;
+  padding: 12px 20px;
+  border-radius: 10px;
+  color: white;
+  text-align: center;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+  max-width: 90%;
+  pointer-events: none; 
+}
+.toast.show {
+  bottom: 20px; 
+  opacity: 1;
+}
+body.dark .toast {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+}
+
+/* Dark mode overrides (z drobnymi korektami dla tła) */
+body.dark {
+  --text:   #e5e5e5;
+  --muted:  #b0b6be;
+  --bg:     #1e1e1e;
+  --shadow: none;
+
+  --primary: #00b6c3;
+  --accent:  #ff4d5a;
+}
+body.dark .app-header {
+  background: linear-gradient(90deg, #004f55, #006d77),
+              repeating-linear-gradient(
+                135deg,
+                rgba(255,255,255,0.05),
+                rgba(255,255,255,0.05) 6px,
+                transparent 6px,
+                transparent 12px
+              );
+}
+body.dark .card {
+  background: #2a2a2a;
+  border: 1px solid #333;
+}
+body.dark select,
+body.dark input[type="text"],
+body.dark input[type="number"] {
+  background: #1f1f1f;
+  border: 1px solid #3a3a3a;
+  color: var(--text);
+}
+
+/* Ukrycie strzałek input[number] */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield; /* Firefox */
+}
