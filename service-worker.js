@@ -11,23 +11,22 @@ const ASSETS = [
 
 // Instalacja – zapisujemy pliki w cache
 self.addEventListener("install", (event) => {
+  self.skipWaiting(); // <--- wymusza natychmiastową aktywację nowej wersji
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
 });
 
-// Aktywacja – czyścimy stare cache
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
         keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
       )
-    )
+    ).then(() => self.clients.claim()) // <--- aktywuje nową wersję od razu
   );
 });
+
 
 // Obsługa żądań – najpierw sprawdzamy cache, potem sieć
 self.addEventListener("fetch", (event) => {
