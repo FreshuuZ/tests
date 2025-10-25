@@ -487,3 +487,16 @@ themeToggle.addEventListener("click", () => {
   document.body.classList.toggle("light", !isDark);
   localStorage.setItem("theme", isDark ? "dark" : "light");
 });
+
+// Rejestracja service workera
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/service-worker.js")
+    .then(() => console.log("✅ Service worker zarejestrowany"))
+    .catch(err => console.error("❌ Błąd service workera:", err));
+
+  // 💥 Tutaj dodajesz ten event:
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    console.log("♻️ Nowa wersja service workera — odświeżam stronę...");
+    window.location.reload();
+  });
+}
