@@ -2,103 +2,239 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Panel tras i mat — Elis</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Centrum — Elis</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0097a9">
+  <meta name="theme-color" content="#0d1117">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
-<body>
-  <header class="app-header">
-    <div class="brand">
-      <img src="icons/icon-192.png" alt="Elis" class="brand-logo">
-      <span class="brand-title">Panel tras i mat</span>
-    </div>
+<body class="light">
 
+  <div class="background-aurora"></div>
+
+  <header class="app-header">
+    <div class="header-left">
+      <button id="backBtn" class="back-btn" style="display: none;" aria-label="Powrót">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+      </button>
+      <div class="brand">
+        <img src="icons/icon-192.png" alt="Elis" class="brand-logo">
+        <span class="brand-title" id="headerTitle">Centrum Główne</span>
+      </div>
+    </div>
     <button id="themeToggle" class="theme-toggle" aria-label="Zmień motyw">
-      <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 12.79A9 9 0 1111.21 3
-                7 7 0 0021 12.79z"/>
-      </svg>
-      <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" 
-          viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="5"/>
-        <line x1="12" y1="1" x2="12" y2="3"/>
-        <line x1="12" y1="21" x2="12" y2="23"/>
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-        <line x1="1" y1="12" x2="3" y2="12"/>
-        <line x1="21" y1="12" x2="23" y2="12"/>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-      </svg>
+      <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     </button>
   </header>
 
-  <main class="app-main">
-    <section class="card">
-      <h2>🚚 Wybierz trasę</h2>
-      <select id="routeSelect">
-        <option value="">— wybierz trasę —</option>
-      </select>
-    </section>
+  <div id="app">
+    
+    <!-- WIDOK: CENTRUM GŁÓWNE -->
+    <div id="homeView" class="view active">
+      <main class="home-main">
+        <h1 class="home-welcome">Witaj w Systemie Elis</h1>
+        <p class="home-subtitle">Wybierz moduł, z którego chcesz skorzystać</p>
+        
+        <div class="home-grid">
+          <button class="home-tile" data-navigate="panel">
+            <div class="home-tile-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+              </svg>
+            </div>
+            <div class="home-tile-content">
+              <h2>Panel Tras i Zmian</h2>
+              <p>Zarządzaj trasami i zmianami mat</p>
+            </div>
+          </button>
 
-    <section class="card">
-      <h2>🧶 Brakująca mata podstawowa</h2>
-      <input type="text" id="baseSearch" placeholder="🔍 Szukaj maty..." disabled>
-      <select id="baseMatSelect" disabled></select>
-    </section>
-
-    <section class="card">
-      <h2>🔄 Zamiennik</h2>
-      <input type="text" id="altSearch" placeholder="🔍 Szukaj zamiennika..." disabled>
-      <select id="altMatSelect" disabled></select>
-    </section>
-
-    <section class="card">
-      <div class="qty-header">
-        <h2>#️⃣ Ilość mat</h2>
-        <div class="advanced-toggle-wrapper">
-          <label for="advancedQtyToggle" class="advanced-toggle-label">Zaawansowane</label>
-          <input type="checkbox" id="advancedQtyToggle" class="advanced-toggle">
+          <button class="home-tile" data-navigate="mats">
+            <div class="home-tile-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+            </div>
+            <div class="home-tile-content">
+              <h2>Lista Mat Logo</h2>
+              <p>Inwentaryzacja i zarządzanie matami</p>
+            </div>
+          </button>
         </div>
-      </div>
-      
-      <div id="qtyRowSimple" class="qty-row">
-        <button id="qtyDec" class="btn-secondary" aria-label="Zmniejsz">−</button>
-        <input type="number" id="qty" min="1" max="100" value="1" inputmode="numeric">
-        <button id="qtyInc" class="btn-secondary" aria-label="Zwiększ">+</button>
-      </div>
+      </main>
+    </div>
 
-      <div id="qtyRowAdvanced" class="qty-row-advanced" style="display: none;">
-        <div class="qty-advanced-input">
-          <label for="qtyBase">Ilość brakujących</label>
-          <input type="number" id="qtyBase" min="1" max="100" value="1" inputmode="numeric">
-        </div>
-        <div class="qty-advanced-input">
-          <label for="qtyAlt">Ilość zamienników</label>
-          <input type="number" id="qtyAlt" min="1" max="100" value="1" inputmode="numeric">
-        </div>
-      </div>
+    <!-- WIDOK: PANEL TRAS -->
+    <div id="panelView" class="view">
+      <main class="app-main">
+        <section id="routeCard" class="card">
+          <h2>🚚 Wybierz trasę</h2>
+          <div id="routeSelectWrapper" class="custom-select-wrapper"></div>
+        </section>
 
-      <button id="addBtn" class="btn-primary" disabled>
-        <span class="btn-icon" aria-hidden="true">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" fill="none"/>
-          </svg>
-        </span>
-        <span class="btn-label">Dodaj do listy zmian</span>
-      </button>
-    </section>
+        <!-- Karta wyboru akcji -->
+        <section id="actionCard" class="card form-section-disabled">
+          <h2>🔀 Wybierz typ operacji</h2>
+          <div class="action-buttons">
+            <button id="actionReplacement" class="action-btn">
+              <div class="action-btn-icon">🔄</div>
+              <div class="action-btn-content">
+                <h3>Zamiennik</h3>
+                <p>Zamień brakującą matę</p>
+              </div>
+            </button>
+            <button id="actionAddition" class="action-btn">
+              <div class="action-btn-icon">➕</div>
+              <div class="action-btn-content">
+                <h3>Dołożenie</h3>
+                <p>Dodaj matę do trasy</p>
+              </div>
+            </button>
+          </div>
+        </section>
 
-    <section>
-      <h2 class="section-title">📋 Lista zmian</h2>
-      <div id="changesList" class="list"></div>
-    </section>
-  </main>
+        <section id="baseCard" class="card form-section-disabled">
+          <h2>🧶 Brakująca mata podstawowa</h2>
+          <div id="baseMatSelectWrapper" class="custom-select-wrapper"></div>
+        </section>
+
+        <section id="altCard" class="card form-section-disabled">
+          <div class="card-header">
+            <h2>🔄 Zamienniki</h2>
+            <div class="advanced-toggle-wrapper">
+              <label for="advancedModeToggle" class="advanced-toggle-label">Tryb zaawansowany</label>
+              <input type="checkbox" id="advancedModeToggle" class="advanced-toggle">
+            </div>
+          </div>
+
+          <div id="simpleModeContainer">
+            <div id="altMatSelectWrapper" class="custom-select-wrapper"></div>
+            <div class="input-row">
+              <input type="text" id="simpleClientInput" placeholder="Klient (opcjonalnie)">
+            </div>
+            <div class="qty-row">
+              <button id="qtyDec" class="btn-secondary" aria-label="Zmniejsz">−</button>
+              <input type="number" id="qty" min="1" max="100" value="1" inputmode="numeric" placeholder="Ilość">
+              <button id="qtyInc" class="btn-secondary" aria-label="Zwiększ">+</button>
+            </div>
+          </div>
+
+          <div id="advancedModeContainer" style="display: none;">
+            <div class="advanced-section">
+              <h3>Ilość mat bazowych</h3>
+              <div class="qty-row">
+                <button id="advQtyBaseDec" class="btn-secondary" aria-label="Zmniejsz">−</button>
+                <input type="number" id="advQtyBase" min="1" max="100" value="1" inputmode="numeric">
+                <button id="advQtyBaseInc" class="btn-secondary" aria-label="Zwiększ">+</button>
+              </div>
+            </div>
+            
+            <div class="advanced-section">
+              <h3>Kreator listy zamienników</h3>
+              <div class="multi-alt-builder">
+                <div id="multiAltSelectWrapper" class="custom-select-wrapper"></div>
+                <div class="multi-alt-input-row">
+                  <input type="text" id="multiAltClientInput" placeholder="Klient (opcjonalnie)">
+                  <div class="qty-row mini">
+                    <input type="number" id="multiAltQtyInput" value="1" min="1" max="100" inputmode="numeric" placeholder="Ilość">
+                  </div>
+                  <button id="addTempAltBtn" class="btn-add-alt" aria-label="Dodaj ten zamiennik do listy">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div id="tempMultiAltList" class="temp-multi-alt-list"></div>
+            </div>
+          </div>
+          
+          <button id="addBtn" class="btn-primary" disabled>
+            <span class="btn-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
+            </span>
+            <span class="btn-label">Dodaj do listy zmian</span>
+          </button>
+        </section>
+
+        <!-- Karta dołożenia -->
+        <section id="additionCard" class="card form-section-disabled" style="display: none;">
+          <h2>➕ Dołóż matę do trasy</h2>
+          <div id="additionMatSelectWrapper" class="custom-select-wrapper"></div>
+          <div class="qty-row">
+            <button id="additionQtyDec" class="btn-secondary" aria-label="Zmniejsz">−</button>
+            <input type="number" id="additionQty" min="1" max="100" value="1" inputmode="numeric" placeholder="Ilość">
+            <button id="additionQtyInc" class="btn-secondary" aria-label="Zwiększ">+</button>
+          </div>
+          <button id="addAdditionBtn" class="btn-primary" disabled>
+            <span class="btn-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
+            </span>
+            <span class="btn-label">Dodaj dołożenie</span>
+          </button>
+        </section>
+
+        <section>
+          <h2 class="section-title">📋 Lista zmian</h2>
+          <div id="changesList" class="list"></div>
+        </section>
+      </main>
+    </div>
+
+    <!-- WIDOK: LISTA MAT LOGO -->
+    <div id="matsView" class="view">
+      <main class="app-main">
+        <section class="card">
+          <div class="card-header">
+            <h2>🔍 Wyszukiwarka Mat Logo</h2>
+            <div class="mats-actions-buttons">
+              <button id="exportExcelBtn" class="btn-export-excel" aria-label="Eksportuj do Excel">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                <span>Excel</span>
+              </button>
+              <button id="printMatsBtn" class="btn-print-mats" aria-label="Drukuj listę mat">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                  <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+                <span>Drukuj</span>
+              </button>
+            </div>
+          </div>
+          <div class="search-box">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" id="matsSearch" placeholder="Wpisz nazwę, lokalizację lub rozmiar..." class="search-input">
+          </div>
+          <div class="mats-stats">
+            <span id="matsCount">Załadowano: 0 mat</span>
+            <span id="matsFiltered" style="display:none;"></span>
+          </div>
+        </section>
+
+        <section>
+          <h2 class="section-title">📦 Lista Mat (inwentaryzacja)</h2>
+          <div id="matsList" class="mats-list"></div>
+        </section>
+      </main>
+    </div>
+
+  </div>
 
   <footer class="app-footer">
     <span>Created by Dominik Bocian</span>
@@ -106,11 +242,12 @@
 
   <div id="toast" class="toast"></div>
 
-  <!-- Modal do edycji prostej -->
+  <!-- Modale Panel Tras -->
   <div id="editSimpleModal" class="modal">
     <div class="modal-content">
-      <h3>Edytuj ilość</h3>
-      <input type="number" id="editSimpleQtyInput" min="1" max="100">
+      <h3>Edytuj zmianę</h3>
+      <input type="number" id="editSimpleQtyInput" min="1" max="100" placeholder="Ilość">
+      <input type="text" id="editSimpleClientInput" placeholder="Klient (opcjonalnie)">
       <div class="modal-actions">
         <button id="editSimpleCancel" class="btn-secondary">Anuluj</button>
         <button id="editSimpleSave" class="btn-primary">Zapisz</button>
@@ -118,23 +255,37 @@
     </div>
   </div>
 
-  <!-- Modal do edycji zaawansowanej -->
   <div id="editAdvancedModal" class="modal">
-    <div class="modal-content">
-      <h3>Edycja zaawansowana</h3>
-      <div class="advanced-edit-container">
-        <div class="advanced-edit-row">
-          <label for="editAdvancedQtyBase">Ilość brakujących</label>
-          <input type="number" id="editAdvancedQtyBase" min="1" max="100">
-        </div>
-        <div class="advanced-edit-row">
-          <label for="editAdvancedQtyAlt">Ilość zamienników</label>
-          <input type="number" id="editAdvancedQtyAlt" min="1" max="100">
-        </div>
+    <div class="modal-content large">
+      <h3>Edytuj zmianę zaawansowaną</h3>
+      <div id="editAdvChangeDetails"></div>
+      <div class="advanced-section">
+          <h4>Ilość mat bazowych</h4>
+          <div class="qty-row">
+            <button id="editAdvQtyBaseDec" class="btn-secondary">−</button>
+            <input type="number" id="editAdvQtyBaseInput" min="1" max="100" value="1" inputmode="numeric">
+            <button id="editAdvQtyBaseInc" class="btn-secondary">+</button>
+          </div>
+      </div>
+      <div class="advanced-section">
+          <h4>Kreator listy zamienników</h4>
+          <div class="multi-alt-builder">
+            <div id="editMultiAltSelectWrapper" class="custom-select-wrapper"></div>
+            <div class="multi-alt-input-row">
+              <input type="text" id="editMultiAltClientInput" placeholder="Klient (opcjonalnie)">
+              <div class="qty-row mini">
+                <input type="number" id="editMultiAltQtyInput" value="1" min="1" max="100" inputmode="numeric">
+              </div>
+              <button id="editAddTempAltBtn" class="btn-add-alt" aria-label="Dodaj zamiennik">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
+              </button>
+            </div>
+          </div>
+          <div id="editTempMultiAltList" class="edit-temp-multi-alt-list"></div>
       </div>
       <div class="modal-actions">
         <button id="editAdvancedCancel" class="btn-secondary">Anuluj</button>
-        <button id="editAdvancedSave" class="btn-primary">Zapisz</button>
+        <button id="editAdvancedSave" class="btn-primary">Zapisz zmiany</button>
       </div>
     </div>
   </div>
@@ -142,9 +293,7 @@
   <div id="deleteModal" class="modal">
     <div class="modal-content">
       <h3>Potwierdź usunięcie</h3>
-      <p id="deleteModalText" style="text-align: center; margin-bottom: 16px; line-height: 1.5;">
-        Na pewno chcesz usunąć tę zmianę?
-      </p>
+      <p id="deleteModalText"></p>
       <div class="modal-actions">
         <button id="deleteCancel" class="btn-secondary">Anuluj</button>
         <button id="deleteConfirm" class="btn-danger">Usuń</button>
@@ -154,10 +303,8 @@
 
   <div id="deleteGroupModal" class="modal">
     <div class="modal-content">
-      <h3>Potwierdzenie usunięcia trasy</h3> 
-      <p id="deleteGroupModalText" style="text-align: center; margin-bottom: 16px; line-height: 1.5;">
-        Na pewno usunąć całą grupę zmian dla tej trasy?
-      </p>
+      <h3>Potwierdzenie usunięcia</h3> 
+      <p id="deleteGroupModalText"></p>
       <div class="modal-actions">
         <button id="deleteGroupCancel" class="btn-secondary">Anuluj</button>
         <button id="deleteGroupConfirm" class="btn-danger">Usuń trasę</button>
@@ -165,6 +312,31 @@
     </div>
   </div>
 
+  <!-- Modal Edycji Dołożenia -->
+  <div id="editAdditionModal" class="modal">
+    <div class="modal-content">
+      <h3>Edytuj dołożenie</h3>
+      <p id="editAdditionName" style="text-align: center; font-weight: 600; margin-bottom: 16px; color: var(--primary);"></p>
+      <div class="qty-row">
+        <button id="editAdditionQtyDec" class="btn-secondary">−</button>
+        <input type="number" id="editAdditionQtyInput" min="1" max="100" inputmode="numeric">
+        <button id="editAdditionQtyInc" class="btn-secondary">+</button>
+      </div>
+      <div class="modal-actions">
+        <button id="editAdditionCancel" class="btn-secondary">Anuluj</button>
+        <button id="editAdditionSave" class="btn-primary">Zapisz</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="print-container">
+    <div id="print-output"></div>
+  </div>
+  
+  <div id="select-portal"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <script src="logoData.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
