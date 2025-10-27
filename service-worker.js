@@ -1,4 +1,4 @@
-const CACHE_NAME = "elis-panel-v3";
+const CACHE_NAME = "elis-panel-v7";
 const ASSETS = [
   "./",
   "./index.html",
@@ -35,5 +35,7 @@ self.addEventListener("fetch", (event) => {
       return response || fetch(event.request);
     })
   );
+
 });
+
 
