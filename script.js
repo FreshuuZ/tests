@@ -1,10 +1,14 @@
 document.addEventListener("DOMContentLoaded", () => {
   
+  // ==================== GLOBAL STATE & CACHE ====================
+  let allLogoMats = []; // Cache dla mat logo z Supabase
+  
   // ==================== ROUTING SYSTEM ====================
   const views = {
     home: document.getElementById('homeView'),
     panel: document.getElementById('panelView'),
-    mats: document.getElementById('matsView')
+    mats: document.getElementById('matsView'),
+    washing: document.getElementById('washingView')
   };
   
   const headerTitle = document.getElementById('headerTitle');
@@ -17,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentView = viewName;
     
     if (viewName === 'home') {
-      headerTitle.textContent = 'Centrum Główne';
+      headerTitle.textContent = 'Elis ServiceHub';
       backBtn.style.display = 'none';
     } else if (viewName === 'panel') {
       headerTitle.textContent = 'Panel Tras i Zmian';
@@ -25,6 +29,14 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (viewName === 'mats') {
       headerTitle.textContent = 'Lista Mat Logo';
       backBtn.style.display = 'flex';
+      (async () => {
+          const mats = await fetchAndCacheLogoMats();
+          renderMats(mats, matsSearch.value);
+      })();
+    } else if (viewName === 'washing') {
+      headerTitle.textContent = 'Pranie Mat Logo';
+      backBtn.style.display = 'flex';
+      loadWashingData();
     }
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -124,6 +136,9 @@ document.addEventListener("DOMContentLoaded", () => {
             trigger.textContent = newPlaceholder;
             trigger.classList.add('placeholder');
             selectInstance.close();
+        },
+        updateOptions: (newOptions) => {
+            options = newOptions;
         }
     };
     
@@ -179,6 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     wrapper.reset = selectInstance.reset;
     wrapper.close = selectInstance.close;
+    wrapper.updateOptions = selectInstance.updateOptions;
     return wrapper;
   }
   
@@ -194,6 +210,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }, 150);
   }, true);
+
+  // ==================== PANEL PRANIA - ELEMENTY DOM ====================
+  const washingMatSelectWrapper = document.getElementById('washingMatSelectWrapper');
+  const addToWashingBtn = document.getElementById('addToWashingBtn');
+  const activeWashingList = document.getElementById('activeWashingList');
   
   // ==================== PANEL TRAS - ELEMENTY DOM ====================
   const routeCard = document.getElementById("routeCard");
@@ -255,7 +276,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const editAdvancedSave = document.getElementById("editAdvancedSave");
   let editTempAlternatives = [];
 
-  // Modal edycji dołożenia
+  const singleModeSection = document.getElementById('singleModeSection');
+  const distributeModeSection = document.getElementById('distributeModeSection');
+  const distributeStep1 = document.getElementById('distributeStep1');
+  const distributeStep2 = document.getElementById('distributeStep2');
+  const distributeTotalQty = document.getElementById('distributeTotalQty');
+  const startDistributeBtn = document.getElementById('startDistributeBtn');
+  const distributeMatName = document.getElementById('distributeMatName');
+  const distributeRemaining = document.getElementById('distributeRemaining');
+  const distributeTotal = document.getElementById('distributeTotal');
+  const distributeAssigned = document.getElementById('distributeAssigned');
+  const distributeLeft = document.getElementById('distributeLeft');
+  const distributeProgressFill = document.getElementById('distributeProgressFill');
+  const distributeClientInput = document.getElementById('distributeClientInput');
+  const distributeClientQty = document.getElementById('distributeClientQty');
+  const addDistributeClientBtn = document.getElementById('addDistributeClientBtn');
+  const distributeClientsList = document.getElementById('distributeClientsList');
+  const cancelDistributeBtn = document.getElementById('cancelDistributeBtn');
+  const confirmDistributeBtn = document.getElementById('confirmDistributeBtn');
+
+  let distributeClients = [];
+  let distributeData = { mat: '', total: 0 };
+
   const editAdditionModal = document.getElementById("editAdditionModal");
   const editAdditionName = document.getElementById("editAdditionName");
   const editAdditionQtyInput = document.getElementById("editAdditionQtyInput");
@@ -282,7 +324,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let selectedAction = null;
   let appState = {
       route: '', baseMat: '', altMat: '',
-      multiAltMat: '', editMultiAltMat: '', additionMat: ''
+      multiAltMat: '', editMultiAltMat: '', additionMat: '', distributeMat: '',
+      washingMat: ''
   };
 
   const routesByDay = {
@@ -352,14 +395,22 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderTempAltList() {
     tempMultiAltList.innerHTML = tempAlternatives.length === 0 
       ? `<p style="text-align: center; color: var(--muted); font-size: 14px; margin: 12px 0 0 0;">Brak dodanych zamienników.</p>`
-      : tempAlternatives.map((alt, index) => 
-        `<div class="temp-alt-item">
-          <div class="temp-alt-item-details">
-            <div class="temp-alt-item-mat">${alt.alt}<span class="badge">×${alt.qty}</span></div>
-            ${alt.client ? `<div class="temp-alt-item-client">${alt.client}</div>` : ''}
-          </div>
-          <button class="btn-danger" data-index="${index}" aria-label="Usuń ten zamiennik">🗑️</button>
-        </div>`).join('');
+      : tempAlternatives.map((alt, index) => {
+          const isNew = index >= tempAlternatives.length - 5;
+          return `<div class="temp-alt-item ${isNew ? 'just-added' : ''}">
+            <div class="temp-alt-item-details">
+              <div class="temp-alt-item-mat">${alt.alt}<span class="badge">×${alt.qty}</span></div>
+              ${alt.client ? `<div class="temp-alt-item-client">${alt.client}</div>` : ''}
+            </div>
+            <button class="btn-danger" data-index="${index}" aria-label="Usuń ten zamiennik">🗑️</button>
+          </div>`;
+        }).join('');
+    
+    setTimeout(() => {
+      document.querySelectorAll('.temp-alt-item.just-added').forEach(el => {
+        el.classList.remove('just-added');
+      });
+    }, 1500);
   }
 
   function renderEditTempAltList() {
@@ -503,7 +554,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   
   function openDeleteGroupModal(route, element) {
-    // Zapisujemy referencję do nadrzędnego kontenera `.route-group`
     routeGroupToDelete = { route, element: element.closest('.route-group') }; 
     const changeCount = changes.filter(c => c.route === route).length;
     deleteGroupModalText.innerHTML = `Na pewno usunąć trasę <b>${route}</b> i wszystkie <b>${changeCount}</b> powiązane z nią zmiany?`;
@@ -556,46 +606,42 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => { removeChange(index); renderChanges(); showToast("🗑️ Usunięto", "error"); }, 300); 
     closeModal(deleteModal); 
   });
-  
 
   deleteGroupConfirm.addEventListener("click", () => {
-      if (routeGroupToDelete.route === null || !routeGroupToDelete.element) return;
-      const { route, element } = routeGroupToDelete;
-      
-      closeModal(deleteGroupModal);
-      element.classList.add("is-hiding");
+    if (routeGroupToDelete.route === null || !routeGroupToDelete.element) return;
+    const { route, element } = routeGroupToDelete;
+    
+    closeModal(deleteGroupModal);
+    element.classList.add("is-hiding");
 
-      setTimeout(() => {
-        // Usuń z danych
-        removeRouteGroup(route);
-        
-        // Usuń tylko ten element DOM (nie przebudowuj wszystkiego!)
-        element.remove();
-        
-        // Jeśli lista pusta, pokaż empty state
-        if (changes.length === 0) {
-          changesList.innerHTML = `
-            <div class="empty-state">
-              <svg class="empty-state-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="12" y1="18" x2="12" y2="12"></line>
-                <line x1="9" y1="15" x2="15" y2="15"></line>
-              </svg>
-              <div class="empty-state-text">Lista zmian jest pusta.<br>Wybierz trasę i dodaj pierwszą zmianę.</div>
-            </div>
-          `;
-        }
-        
-        showToast("🗑️ Usunięto trasę", "error");
-        routeGroupToDelete = { route: null, element: null }; 
-      }, 400); // 400ms - dopasowane do transition w CSS (0.4s)
+    setTimeout(() => {
+      removeRouteGroup(route);
+      element.remove();
+      
+      if (changes.length === 0) {
+        changesList.innerHTML = `
+          <div class="empty-state">
+            <svg class="empty-state-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="12" y1="18" x2="12" y2="12"></line>
+              <line x1="9" y1="15" x2="15" y2="15"></line>
+            </svg>
+            <div class="empty-state-text">Lista zmian jest pusta.<br>Wybierz trasę i dodaj pierwszą zmianę.</div>
+          </div>
+        `;
+      }
+      
+      showToast("🗑️ Usunięto trasę", "error");
+      routeGroupToDelete = { route: null, element: null }; 
+    }, 400); 
   });
 
   [editSimpleCancel, editAdvancedCancel, editAdditionCancel, deleteCancel, deleteGroupCancel].forEach(btn => 
     btn.addEventListener("click", () => closeModal(btn.closest('.modal')))
   );
-    changesList.addEventListener("click", (e) => {
+
+  changesList.addEventListener("click", (e) => {
     const actionElement = e.target.closest("[data-action]");
     if (!actionElement) return;
     const action = actionElement.dataset.action;
@@ -675,7 +721,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Wybór akcji
   actionReplacement.addEventListener('click', () => {
     selectedAction = 'replacement';
     actionReplacement.classList.add('selected');
@@ -757,14 +802,13 @@ document.addEventListener("DOMContentLoaded", () => {
     editAdvQtyBaseInput.value = Math.max(1, Math.min(100, Number(editAdvQtyBaseInput.value) + change)); 
   }));
   
-  // Przyciski +/- dla edycji dołożenia
   editAdditionQtyDec.addEventListener("click", () => {
     editAdditionQtyInput.value = Math.max(1, Math.min(100, Number(editAdditionQtyInput.value) - 1));
   });
   editAdditionQtyInc.addEventListener("click", () => {
     editAdditionQtyInput.value = Math.max(1, Math.min(100, Number(editAdditionQtyInput.value) + 1));
   });
-  
+    
   addBtn.addEventListener("click", () => {
     if (!appState.route || !appState.baseMat) { showToast("Wybierz trasę i matę bazową!", "error"); return; }
     let newChange;
@@ -826,24 +870,53 @@ document.addEventListener("DOMContentLoaded", () => {
   additionQtyInc.addEventListener('click', () => {
     additionQty.value = Math.max(1, Math.min(100, Number(additionQty.value) + 1));
   });
-
-  // ==================== LISTA MAT LOGO ====================
+  
+  // ==================== LISTA MAT LOGO (SUPABASE) ====================
   const matsSearch = document.getElementById('matsSearch');
   const matsList = document.getElementById('matsList');
   const matsCount = document.getElementById('matsCount');
   const matsFiltered = document.getElementById('matsFiltered');
   const printMatsBtn = document.getElementById('printMatsBtn');
+  const exportExcelBtn = document.getElementById('exportExcelBtn');
 
-  function renderMats(filter = '') {
-    const filtered = logoData.filter(mat => {
+  async function fetchAndCacheLogoMats() {
+    if (allLogoMats.length > 0) {
+      return allLogoMats;
+    }
+    
+    matsList.innerHTML = `<div class="empty-state"><div class="empty-state-text">Pobieranie danych z bazy...</div></div>`;
+    
+    try {
+      const { data, error } = await window.supabase
+        .from('logo_mats')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (error) {
+        throw error;
+      }
+      
+      allLogoMats = data;
+      return data;
+
+    } catch (error) {
+      console.error("Błąd pobierania mat z Supabase:", error);
+      showToast("Błąd pobierania danych mat. Sprawdź konsolę.", "error");
+      matsList.innerHTML = `<div class="empty-state error"><div class="empty-state-text">Nie udało się pobrać danych.</div></div>`;
+      return [];
+    }
+  }
+
+  function renderMats(matsData, filter = '') {
+    const filtered = matsData.filter(mat => {
       const search = filter.toLowerCase();
-      return mat.name.toLowerCase().includes(search) ||
-             mat.location.toLowerCase().includes(search) ||
-             mat.size.toLowerCase().includes(search);
+      return (mat.name?.toLowerCase() || '').includes(search) ||
+             (mat.location?.toLowerCase() || '').includes(search) ||
+             (mat.size?.toLowerCase() || '').includes(search);
     });
 
-    const totalQuantity = logoData.reduce((sum, mat) => sum + mat.quantity, 0);
-    matsCount.textContent = `Załadowano: ${logoData.length} mat (łącznie: ${totalQuantity} szt.)`;
+    const totalQuantity = matsData.reduce((sum, mat) => sum + mat.quantity, 0);
+    matsCount.textContent = `Załadowano: ${matsData.length} mat (łącznie: ${totalQuantity} szt.)`;
     
     if (filter) {
       matsFiltered.style.display = 'inline';
@@ -859,7 +932,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <circle cx="11" cy="11" r="8"></circle>
           <path d="m21 21-4.35-4.35"></path>
         </svg>
-        <div class="empty-state-text">Nie znaleziono mat spełniających kryteria.</div>
+        <div class="empty-state-text">${filter ? 'Nie znaleziono mat spełniających kryteria.' : 'Brak danych do wyświetlenia.'}</div>
       </div>`;
       return;
     }
@@ -883,13 +956,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   matsSearch.addEventListener('input', (e) => {
-    renderMats(e.target.value);
+    renderMats(allLogoMats, e.target.value);
   });
-
-  // Eksport do Excel - wersja profesjonalna
-  const exportExcelBtn = document.getElementById('exportExcelBtn');
   
   exportExcelBtn.addEventListener('click', async () => {
+    if (allLogoMats.length === 0) {
+      showToast("Brak danych mat do wyeksportowania.", "error");
+      return;
+    }
     if (typeof ExcelJS === 'undefined') {
       showToast("Biblioteka Excel nie jest załadowana", "error");
       return;
@@ -897,214 +971,84 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Inwentaryzacja Mat', {
-        pageSetup: { 
-          paperSize: 9, 
-          orientation: 'portrait',
-          fitToPage: true,
-          fitToWidth: 1,
-          fitToHeight: 0
-        }
-      });
-
-      // Metadane dokumentu
+      const worksheet = workbook.addWorksheet('Inwentaryzacja Mat', { pageSetup: { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0 } });
       workbook.creator = 'Elis System';
       workbook.created = new Date();
       workbook.company = 'Elis';
-      
-      const currentDate = new Date().toLocaleDateString('pl-PL', { 
-        day: '2-digit', 
-        month: '2-digit', 
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      
-      const totalQuantity = logoData.reduce((sum, mat) => sum + mat.quantity, 0);
-      const sortedMats = [...logoData].sort((a, b) => a.name.localeCompare(b.name, 'pl'));
+      const currentDate = new Date().toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const totalQuantity = allLogoMats.reduce((sum, mat) => sum + mat.quantity, 0);
+      const sortedMats = [...allLogoMats].sort((a, b) => a.name.localeCompare(b.name, 'pl'));
 
-      // === NAGŁÓWEK DOKUMENTU ===
       worksheet.mergeCells('A1:D1');
       const titleCell = worksheet.getCell('A1');
       titleCell.value = 'ELIS - INWENTARYZACJA MAT LOGO';
-      titleCell.font = { 
-        name: 'Calibri', 
-        size: 18, 
-        bold: true, 
-        color: { argb: 'FFFFFFFF' } 
-      };
-      titleCell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FF00A9BE' } // Kolor Elis
-      };
-      titleCell.alignment = { 
-        vertical: 'middle', 
-        horizontal: 'center' 
-      };
+      titleCell.font = { name: 'Calibri', size: 18, bold: true, color: { argb: 'FFFFFFFF' } };
+      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00A9BE' } };
+      titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
       worksheet.getRow(1).height = 35;
 
-      // === INFORMACJE O DOKUMENCIE ===
       worksheet.mergeCells('A2:D2');
       const dateCell = worksheet.getCell('A2');
       dateCell.value = `Data wygenerowania: ${currentDate}`;
       dateCell.font = { name: 'Calibri', size: 10, italic: true };
       dateCell.alignment = { horizontal: 'center' };
-      dateCell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFF0F0F0' }
-      };
-
-      // Pusta linia
+      dateCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F0F0' } };
       worksheet.addRow([]);
 
-      // === PODSUMOWANIE ===
       const summaryRow1 = worksheet.addRow(['PODSUMOWANIE', '', '', '']);
       worksheet.mergeCells(`A${summaryRow1.number}:D${summaryRow1.number}`);
-      summaryRow1.getCell(1).font = { 
-        name: 'Calibri', 
-        size: 12, 
-        bold: true 
-      };
-      summaryRow1.getCell(1).fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFE3E9F0' }
-      };
+      summaryRow1.getCell(1).font = { name: 'Calibri', size: 12, bold: true };
+      summaryRow1.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE3E9F0' } };
       summaryRow1.height = 25;
 
-      const statsRow1 = worksheet.addRow(['Liczba pozycji:', logoData.length, '', '']);
+      const statsRow1 = worksheet.addRow(['Liczba pozycji:', allLogoMats.length, '', '']);
       const statsRow2 = worksheet.addRow(['Suma mat (szt.):', totalQuantity, '', '']);
-      
       [statsRow1, statsRow2].forEach(row => {
         row.getCell(1).font = { name: 'Calibri', size: 11, bold: true };
         row.getCell(2).font = { name: 'Calibri', size: 11 };
         row.getCell(2).alignment = { horizontal: 'left' };
       });
-
-      // Pusta linia
       worksheet.addRow([]);
 
-      // === NAGŁÓWEK TABELI ===
       const headerRow = worksheet.addRow(['Nazwa maty', 'Lokalizacja', 'Rozmiar', 'Ilość (szt.)']);
       headerRow.height = 30;
-      headerRow.font = { 
-        name: 'Calibri', 
-        size: 11, 
-        bold: true, 
-        color: { argb: 'FFFFFFFF' } 
-      };
-      headerRow.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FF0D1117' } // Ciemny kolor
-      };
-      headerRow.alignment = { 
-        vertical: 'middle', 
-        horizontal: 'center' 
-      };
-      
-      // Obramowanie nagłówka
-      headerRow.eachCell((cell) => {
-        cell.border = {
-          top: { style: 'thin', color: { argb: 'FF000000' } },
-          left: { style: 'thin', color: { argb: 'FF000000' } },
-          bottom: { style: 'medium', color: { argb: 'FF000000' } },
-          right: { style: 'thin', color: { argb: 'FF000000' } }
-        };
-      });
+      headerRow.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+      headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0D1117' } };
+      headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+      headerRow.eachCell((cell) => { cell.border = { top: { style: 'thin', color: { argb: 'FF000000' } }, left: { style: 'thin', color: { argb: 'FF000000' } }, bottom: { style: 'medium', color: { argb: 'FF000000' } }, right: { style: 'thin', color: { argb: 'FF000000' } } }; });
 
-      // === DANE MAT ===
       sortedMats.forEach((mat, index) => {
-        const row = worksheet.addRow([
-          mat.name,
-          mat.location || 'Nie określono',
-          mat.size || 'Nie określono',
-          mat.quantity
-        ]);
-        
+        const row = worksheet.addRow([mat.name, mat.location || 'Nie określono', mat.size || 'Nie określono', mat.quantity]);
         row.height = 22;
         row.font = { name: 'Calibri', size: 10 };
-        
-        // Zebra striping (co drugi wiersz)
-        if (index % 2 === 0) {
-          row.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFF9FAFB' }
-          };
-        }
-        
-        // Wyrównanie
+        if (index % 2 === 0) { row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF9FAFB' } }; }
         row.getCell(1).alignment = { vertical: 'middle', horizontal: 'left' };
         row.getCell(2).alignment = { vertical: 'middle', horizontal: 'left' };
         row.getCell(3).alignment = { vertical: 'middle', horizontal: 'center' };
         row.getCell(4).alignment = { vertical: 'middle', horizontal: 'center' };
-        
-        // Pogrubienie ilości
         row.getCell(4).font = { name: 'Calibri', size: 10, bold: true };
-        
-        // Obramowanie
-        row.eachCell((cell) => {
-          cell.border = {
-            top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-            left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-            bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
-            right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
-          };
-        });
+        row.eachCell((cell) => { cell.border = { top: { style: 'thin', color: { argb: 'FFD1D5DB' } }, left: { style: 'thin', color: { argb: 'FFD1D5DB' } }, bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } }, right: { style: 'thin', color: { argb: 'FFD1D5DB' } } }; });
       });
 
-      // === SUMA NA DOLE ===
-      worksheet.addRow([]); // Pusta linia
+      worksheet.addRow([]);
       const totalRow = worksheet.addRow(['', '', 'SUMA CAŁKOWITA:', totalQuantity]);
       totalRow.height = 28;
-      totalRow.getCell(3).font = { 
-        name: 'Calibri', 
-        size: 11, 
-        bold: true 
-      };
-      totalRow.getCell(4).font = { 
-        name: 'Calibri', 
-        size: 12, 
-        bold: true,
-        color: { argb: 'FF00A9BE' }
-      };
+      totalRow.getCell(3).font = { name: 'Calibri', size: 11, bold: true };
+      totalRow.getCell(4).font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FF00A9BE' } };
       totalRow.getCell(3).alignment = { horizontal: 'right', vertical: 'middle' };
       totalRow.getCell(4).alignment = { horizontal: 'center', vertical: 'middle' };
-      totalRow.getCell(4).fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFE0F7FA' }
-      };
+      totalRow.getCell(4).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0F7FA' } };
 
-      // === STOPKA ===
       worksheet.addRow([]);
       const footerRow = worksheet.addRow(['Dokument wygenerowany automatycznie przez system Elis', '', '', '']);
       worksheet.mergeCells(`A${footerRow.number}:D${footerRow.number}`);
-      footerRow.getCell(1).font = { 
-        name: 'Calibri', 
-        size: 9, 
-        italic: true, 
-        color: { argb: 'FF6B7280' } 
-      };
+      footerRow.getCell(1).font = { name: 'Calibri', size: 9, italic: true, color: { argb: 'FF6B7280' } };
       footerRow.getCell(1).alignment = { horizontal: 'center' };
 
-      // === SZEROKOŚCI KOLUMN ===
-      worksheet.columns = [
-        { width: 40 },  // Nazwa
-        { width: 25 },  // Lokalizacja
-        { width: 18 },  // Rozmiar
-        { width: 15 }   // Ilość
-      ];
-
-      // === GENEROWANIE PLIKU ===
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-      });
+      worksheet.columns = [ { width: 40 }, { width: 25 }, { width: 18 }, { width: 15 } ];
       
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const fileName = `Elis_Inwentaryzacja_Mat_${new Date().toISOString().split('T')[0]}.xlsx`;
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -1112,27 +1056,21 @@ document.addEventListener("DOMContentLoaded", () => {
       link.download = fileName;
       link.click();
       window.URL.revokeObjectURL(url);
-      
       showToast("Wyeksportowano do Excel!");
-      
     } catch (error) {
       console.error('Błąd eksportu:', error);
       showToast("Błąd podczas eksportu do Excel", "error");
     }
   });
 
-  // Drukowanie listy mat
   printMatsBtn.addEventListener('click', () => {
-    const printDate = new Date().toLocaleDateString('pl-PL', { 
-      day: '2-digit', 
-      month: '2-digit', 
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-    
-    const totalQuantity = logoData.reduce((sum, mat) => sum + mat.quantity, 0);
-    const sortedMats = [...logoData].sort((a, b) => a.name.localeCompare(b.name, 'pl'));
+    if (allLogoMats.length === 0) {
+      showToast("Brak danych mat do wydrukowania.", "error");
+      return;
+    }
+    const printDate = new Date().toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const totalQuantity = allLogoMats.reduce((sum, mat) => sum + mat.quantity, 0);
+    const sortedMats = [...allLogoMats].sort((a, b) => a.name.localeCompare(b.name, 'pl'));
     
     let printHTML = `
       <div class="print-mats-header">
@@ -1142,70 +1080,567 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>Data wydruku: ${printDate}</p>
         </div>
       </div>
-      
       <div class="print-mats-summary">
-        <p><strong>Łączna liczba pozycji:</strong> ${logoData.length}</p>
+        <p><strong>Łączna liczba pozycji:</strong> ${allLogoMats.length}</p>
         <p><strong>Suma wszystkich mat:</strong> ${totalQuantity} szt.</p>
       </div>
-      
       <table class="print-mats-table">
-        <thead>
-          <tr>
-            <th>Nazwa</th>
-            <th>Lokalizacja</th>
-            <th>Rozmiar</th>
-            <th>Ilość</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Nazwa</th><th>Lokalizacja</th><th>Rozmiar</th><th>Ilość</th></tr></thead>
         <tbody>
     `;
-    
     sortedMats.forEach(mat => {
-      printHTML += `
-        <tr>
-          <td>${mat.name}</td>
-          <td>${mat.location || '—'}</td>
-          <td>${mat.size || '—'}</td>
-          <td>${mat.quantity}</td>
-        </tr>
-      `;
+      printHTML += `<tr><td>${mat.name}</td><td>${mat.location || '—'}</td><td>${mat.size || '—'}</td><td>${mat.quantity}</td></tr>`;
+    });
+    printHTML += `</tbody></table><div class="print-mats-footer"><p>Dokument wygenerowany automatycznie przez system Elis</p></div>`;
+    printOutput.innerHTML = printHTML;
+    setTimeout(() => { try { window.print(); } catch (error) { console.error("Błąd drukowania:", error); showToast("Błąd podczas otwierania okna drukowania.", "error"); } }, 100);
+  });
+  
+  // ==================== KREATOR PODZIAŁU MAT ====================
+  document.querySelectorAll('input[name="advancedMode"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      const mode = e.target.value;
+      if (mode === 'single') {
+        singleModeSection.style.display = 'block';
+        distributeModeSection.style.display = 'none';
+      } else {
+        singleModeSection.style.display = 'none';
+        distributeModeSection.style.display = 'block';
+        distributeStep1.style.display = 'block';
+        distributeStep2.style.display = 'none';
+        
+        const summarySection = document.getElementById('distributeSummary');
+        if (summarySection) {
+          summarySection.style.display = 'none';
+        }
+      }
+      updateFormState();
+    });
+  });
+
+  startDistributeBtn.addEventListener('click', () => {
+    if (!appState.distributeMat) {
+      showToast("Wybierz matę!", "error");
+      return;
+    }
+    const total = Number(distributeTotalQty.value);
+    if (total < 1 || total > 100) {
+      showToast("Ilość musi być od 1 do 100!", "error");
+      return;
+    }
+    
+    const summarySection = document.getElementById('distributeSummary');
+    if (summarySection) {
+      summarySection.style.display = 'none';
+    }
+    
+    distributeData = { mat: appState.distributeMat, total };
+    distributeClients = [];
+    
+    distributeMatName.textContent = appState.distributeMat;
+    distributeTotal.textContent = total;
+    distributeRemaining.textContent = total;
+    distributeAssigned.textContent = '0';
+    distributeLeft.textContent = total;
+    distributeProgressFill.style.width = '0%';
+    
+    distributeClientInput.value = '';
+    distributeClientQty.value = '1';
+    distributeClientsList.innerHTML = '<p style="text-align: center; color: var(--muted); font-size: 14px; margin: 12px 0 0 0;">Dodaj pierwszego klienta</p>';
+    
+    distributeStep1.style.display = 'none';
+    distributeStep2.style.display = 'block';
+    confirmDistributeBtn.disabled = true;
+  });
+
+  addDistributeClientBtn.addEventListener('click', () => {
+    const client = distributeClientInput.value.trim();
+    const qty = Number(distributeClientQty.value);
+    
+    if (!client) {
+      showToast("Podaj nazwę klienta!", "error");
+      return;
+    }
+    
+    const assigned = distributeClients.reduce((sum, c) => sum + c.qty, 0);
+    const remaining = distributeData.total - assigned;
+    
+    if (qty < 1) {
+      showToast("Ilość musi być większa niż 0!", "error");
+      return;
+    }
+    
+    if (qty > remaining) {
+      showToast(`Możesz przydzielić maksymalnie ${remaining} szt.!`, "error");
+      return;
+    }
+    
+    distributeClients.push({ client, qty });
+    renderDistributeClients();
+    updateDistributeProgress();
+    
+    distributeClientInput.value = '';
+    distributeClientQty.value = Math.min(1, remaining - qty);
+    distributeClientInput.focus();
+  });
+
+  function renderDistributeClients() {
+    if (distributeClients.length === 0) {
+      distributeClientsList.innerHTML = `
+        <div class="distribute-empty-state">
+          <span style="font-size: 32px; opacity: 0.3;">📋</span>
+          <p>Nie dodano jeszcze żadnych klientów</p>
+        </div>`;
+      return;
+    }
+    
+    distributeClientsList.innerHTML = distributeClients.map((c, index) => 
+      `<div class="distribute-client-card">
+        <div class="distribute-client-info">
+          <div class="distribute-client-name">${c.client}</div>
+          <div class="distribute-client-qty">Przydzielono: <strong>${c.qty}</strong> szt.</div>
+        </div>
+        <button class="distribute-client-remove btn-danger" data-index="${index}">
+          Usuń
+        </button>
+      </div>`
+    ).join('');
+  }
+
+  function updateDistributeProgress() {
+    const assigned = distributeClients.reduce((sum, c) => sum + c.qty, 0);
+    const remaining = distributeData.total - assigned;
+    const percentage = (assigned / distributeData.total) * 100;
+    
+    distributeAssigned.textContent = assigned;
+    distributeLeft.textContent = remaining;
+    distributeRemaining.textContent = remaining;
+    distributeProgressFill.style.width = `${percentage}%`;
+    
+    const isComplete = remaining === 0;
+    confirmDistributeBtn.disabled = !isComplete;
+    
+    const summarySection = document.getElementById('distributeSummary');
+    if (isComplete && distributeClients.length > 0) {
+      summarySection.style.display = 'block';
+      
+      document.getElementById('distributeSummaryMat').textContent = distributeData.mat;
+      document.getElementById('distributeSummaryCount').textContent = distributeClients.length;
+      
+      const summaryList = document.getElementById('distributeSummaryList');
+      summaryList.innerHTML = distributeClients.map(c => 
+        `<div class="distribute-summary-item">
+          <span class="distribute-summary-item-name">${c.client}</span>
+          <span class="distribute-summary-item-qty">×${c.qty}</span>
+        </div>`
+      ).join('');
+      
+      confirmDistributeBtn.innerHTML = '<span style="font-size: 16px; margin-right: 6px;">✓</span> Zatwierdź podział';
+    } else {
+      summarySection.style.display = 'none';
+      confirmDistributeBtn.innerHTML = `<span style="font-size: 16px; margin-right: 6px;">⏳</span> Rozdziel wszystkie (brakuje ${remaining})`;
+    }
+  }
+
+  distributeClientsList.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-danger[data-index]');
+    if (btn) {
+      const index = Number(btn.dataset.index);
+      distributeClients.splice(index, 1);
+      renderDistributeClients();
+      updateDistributeProgress();
+    }
+  });
+
+  cancelDistributeBtn.addEventListener('click', () => {
+    distributeStep1.style.display = 'block';
+    distributeStep2.style.display = 'none';
+    distributeClients = [];
+    
+    const summarySection = document.getElementById('distributeSummary');
+    if (summarySection) {
+      summarySection.style.display = 'none';
+    }
+  });
+
+  confirmDistributeBtn.addEventListener('click', () => {
+    const assigned = distributeClients.reduce((sum, c) => sum + c.qty, 0);
+    if (assigned !== distributeData.total) {
+      showToast("Musisz przydzielić wszystkie maty!", "error");
+      return;
+    }
+    
+    distributeClients.forEach(c => {
+      tempAlternatives.push({
+        alt: distributeData.mat,
+        qty: c.qty,
+        client: c.client
+      });
     });
     
-    printHTML += `
-        </tbody>
-      </table>
-      
-      <div class="print-mats-footer">
-        <p>Elis - System Zarządzania Matami | Wygenerowano automatycznie</p>
-      </div>
-    `;
+    const clientCount = distributeClients.length;
+    showToast(`✅ Dodano ${clientCount} ${clientCount === 1 ? 'klienta' : clientCount < 5 ? 'klientów' : 'klientów'} do listy!`);
     
-    printOutput.innerHTML = printHTML;
+    distributeStep1.style.display = 'block';
+    distributeStep2.style.display = 'none';
+    distributeClients = [];
+    const distributeMatSelectWrapper = document.getElementById('distributeMatSelectWrapper');
+    distributeMatSelectWrapper.reset('— wybierz matę —');
+    distributeTotalQty.value = '1';
+    
+    const singleRadio = document.querySelector('input[name="advancedMode"][value="single"]');
+    singleRadio.checked = true;
+    singleModeSection.style.display = 'block';
+    distributeModeSection.style.display = 'none';
+    
+    renderTempAltList();
+    updateFormState();
     
     setTimeout(() => {
-      try {
-        window.print();
-      } catch (error) {
-        console.error("Błąd drukowania:", error);
-        showToast("Błąd podczas otwierania okna drukowania.", "error");
-      }
+      tempMultiAltList.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 100);
   });
   
+  // ==================== PANEL PRANIA - FUNKCJE ====================
+
+  // Funkcja określająca zmianę (6-14 = zmiana 1, 14-22 = zmiana 2)
+  function getCurrentShift() {
+    const now = new Date();
+    const hours = now.getHours();
+    
+    if (hours >= 6 && hours < 14) {
+      return '1 zmiana';
+    } else if (hours >= 14 && hours < 22) {
+      return '2 zmiana';
+    } else {
+      return null; // Poza godzinami zmian
+    }
+  }
+
+  // Wyświetlanie info o aktualnej zmianie
+  function updateShiftInfo() {
+    const shiftInfoCard = document.getElementById('currentShiftInfo');
+    if (!shiftInfoCard) return;
+    
+    const currentShift = getCurrentShift();
+    const now = new Date();
+    const hours = now.getHours();
+    
+    if (currentShift) {
+      const isFirstShift = currentShift === '1 zmiana';
+      const endHour = isFirstShift ? '14:00' : '22:00';
+      const remainingHours = (isFirstShift ? 14 : 22) - hours;
+      
+      shiftInfoCard.className = 'shift-info-card active';
+      shiftInfoCard.innerHTML = `
+        <div class="shift-info-icon">✅</div>
+        <div class="shift-info-content">
+          <div class="shift-info-title">Trwa zmiana</div>
+          <div class="shift-info-desc">Możesz dodawać maty do prania. Zmiana kończy się o ${endHour} (pozostało ~${remainingHours}h)</div>
+        </div>
+        <div class="shift-badge">${currentShift}</div>
+      `;
+    } else {
+      const nextShiftStart = hours < 6 ? '6:00' : '6:00 (następnego dnia)';
+      shiftInfoCard.className = 'shift-info-card inactive';
+      shiftInfoCard.innerHTML = `
+        <div class="shift-info-icon">⏸️</div>
+        <div class="shift-info-content">
+          <div class="shift-info-title">Brak aktywnej zmiany</div>
+          <div class="shift-info-desc">Dodawanie mat dostępne w godzinach: 6:00-14:00 (1 zmiana) i 14:00-22:00 (2 zmiana). Następna zmiana: ${nextShiftStart}</div>
+        </div>
+        <div class="shift-badge">POZA GODZINAMI</div>
+      `;
+    }
+  }
+
+  // Pobieranie aktywnych prań z Supabase
+  async function fetchActiveWashing() {
+    try {
+      const { data, error } = await window.supabase
+        .from('washing_queue')
+        .select('*')
+        .order('started_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+
+    } catch (error) {
+      console.error("Błąd pobierania aktywnych prań:", error);
+      showToast("Błąd pobierania danych prania.", "error");
+      return [];
+    }
+  }
+
+  async function loadWashingData() {
+    // Zaktualizuj info o zmianie
+    updateShiftInfo();
+    
+    // Odświeżaj info co minutę
+    setInterval(updateShiftInfo, 60000);
+    
+    const mats = await fetchAndCacheLogoMats();
+    const matNames = mats.map(m => m.name).filter((v, i, a) => a.indexOf(v) === i).sort();
+    washingMatSelectWrapper.updateOptions(matNames);
+    addToWashingBtn.disabled = !appState.washingMat;
+
+    const activeItems = await fetchActiveWashing();
+    renderWashingList(activeItems);
+  }
+
+  function renderWashingList(items) {
+    if (!items || items.length === 0) {
+      activeWashingList.innerHTML = `<div class="empty-state">
+        <svg class="empty-state-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 6v6l4 2"></path>
+        </svg>
+        <div class="empty-state-text">Brak mat w praniu.<br>Dodaj pierwszą matę z listy powyżej.</div>
+      </div>`;
+      return;
+    }
+
+    activeWashingList.innerHTML = items.map(item => {
+      const startDate = new Date(item.started_at);
+      const startTime = startDate.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+      const startDateStr = startDate.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit' });
+      
+      // Oblicz ile czasu w praniu
+      const now = new Date();
+      const diffMs = now - startDate;
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      const timeInWashing = diffHours > 0 ? `${diffHours}h ${diffMinutes}min` : `${diffMinutes}min`;
+      
+      return `
+        <div class="washing-item">
+          <div class="washing-item-header">
+            <div class="washing-item-name">${item.mat_name}</div>
+            <div class="washing-item-shift">${item.shift}</div>
+          </div>
+          <div class="washing-item-details">
+            ${item.mat_location ? `
+              <div class="washing-item-detail">
+                <span>📍</span>
+                <strong>${item.mat_location}</strong>
+              </div>
+            ` : ''}
+            ${item.mat_size ? `
+              <div class="washing-item-detail">
+                <span>📏</span>
+                <span>${item.mat_size}</span>
+              </div>
+            ` : ''}
+          </div>
+          <div class="washing-item-time">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>Dodano: ${startDateStr} o ${startTime} (w praniu ${timeInWashing})</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+  
+  function renderWashingList(items) {
+    if (!items || items.length === 0) {
+      activeWashingList.innerHTML = `<div class="empty-state">
+        <svg class="empty-state-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+        <div class="empty-state-text">Brak mat w praniu.<br>Dodaj pierwszą matę z listy powyżej.</div>
+      </div>`;
+      return;
+    }
+
+    activeWashingList.innerHTML = items.map(item => {
+      const startTime = new Date(item.started_at).toLocaleString('pl-PL', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+      return `
+        <div class="route-change" style="animation: fadeInSlideUp 0.3s ease;">
+          <div class="change-details">
+            <div class="change-meta-row">
+              <span class="change-meta-label">Mata:</span>
+              <span class="change-meta-value">${item.mat_name}</span>
+            </div>
+            ${item.mat_location ? `
+            <div class="change-meta-row">
+              <span class="change-meta-label">Lokalizacja:</span>
+              <span class="change-meta-value">${item.mat_location}</span>
+            </div>` : ''}
+            ${item.mat_size ? `
+            <div class="change-meta-row">
+              <span class="change-meta-label">Rozmiar:</span>
+              <span class="change-meta-value">${item.mat_size}</span>
+            </div>` : ''}
+            <div class="change-meta-row">
+              <span class="change-meta-label">Dodano:</span>
+              <span class="change-meta-value">${startTime} <span class="badge">${item.shift}</span></span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+  
+  // Renderowanie archiwum (opcjonalne)
+  function renderWashingArchive(items) {
+    if (!washingArchiveList) return;
+    
+    if (!items || items.length === 0) {
+      washingArchiveList.innerHTML = `<div class="empty-state">
+        <div class="empty-state-text">Brak zapisów w archiwum.</div>
+      </div>`;
+      return;
+    }
+
+    washingArchiveList.innerHTML = items.map(item => {
+      const archivedTime = new Date(item.archived_at).toLocaleString('pl-PL', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+      const duration = item.duration_hours ? `${Math.round(item.duration_hours)}h` : '—';
+      
+      return `
+        <div class="route-change" style="animation: fadeInSlideUp 0.3s ease; opacity: 0.7;">
+          <div class="change-details">
+            <div class="change-meta-row">
+              <span class="change-meta-label">Mata:</span>
+              <span class="change-meta-value">${item.mat_name}</span>
+            </div>
+            <div class="change-meta-row">
+              <span class="change-meta-label">Zmiana:</span>
+              <span class="change-meta-value"><span class="badge">${item.shift}</span></span>
+            </div>
+            <div class="change-meta-row">
+              <span class="change-meta-label">Zarchiwizowano:</span>
+              <span class="change-meta-value">${archivedTime} (czas prania: ${duration})</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+  
+  washingMatSelectWrapper.addEventListener("change", () => {
+    addToWashingBtn.disabled = !appState.washingMat;
+  });
+
+  addToWashingBtn.addEventListener("click", async () => {
+    if (!appState.washingMat) return;
+
+    const currentShift = getCurrentShift();
+    if (!currentShift) {
+      showToast("Można dodawać maty do prania tylko podczas zmian (6-14 i 14-22).", "error");
+      return;
+    }
+
+    const matDetails = allLogoMats.find(m => m.name === appState.washingMat);
+    if (!matDetails) {
+      showToast("Nie znaleziono szczegółów maty. Spróbuj odświeżyć.", "error");
+      return;
+    }
+
+    const matToAdd = {
+      mat_name: matDetails.name,
+      mat_location: matDetails.location,
+      mat_size: matDetails.size,
+      shift: currentShift
+    };
+
+    try {
+      addToWashingBtn.disabled = true;
+      addToWashingBtn.textContent = 'Dodawanie...';
+
+      const { error } = await window.supabase
+        .from('washing_queue')
+        .insert([matToAdd]);
+
+      if (error) throw error;
+
+      showToast(`✅ Dodano ${matToAdd.mat_name} do prania!`);
+      washingMatSelectWrapper.reset('— wybierz matę logo —');
+      
+      const activeItems = await fetchActiveWashing();
+      renderWashingList(activeItems);
+
+    } catch (error) {
+      console.error("Błąd dodawania do prania:", error);
+      showToast("Błąd zapisu do bazy danych.", "error");
+    } finally {
+      addToWashingBtn.disabled = false;
+      addToWashingBtn.textContent = 'Wrzuć do prania';
+    }
+  });
+
   // ==================== INICJALIZACJA ====================
-  function init() {
+  async function init() {
+    const logoMatsPromise = fetchAndCacheLogoMats();
+    
     createCustomSelect(routeSelectWrapper, routesByDay, "— wybierz trasę —", "route", true);
     createCustomSelect(baseMatSelectWrapper, mats, "— wybierz matę —", "baseMat");
     createCustomSelect(altMatSelectWrapper, mats, "— wybierz zamiennik —", "altMat");
     createCustomSelect(multiAltSelectWrapper, mats, "— wybierz zamiennik —", "multiAltMat");
     createCustomSelect(editMultiAltSelectWrapper, mats, "— wybierz zamiennik —", "editMultiAltMat");
     createCustomSelect(additionMatSelectWrapper, mats, "— wybierz matę —", "additionMat");
+    const distributeMatSelectWrapper = document.getElementById('distributeMatSelectWrapper');
+    createCustomSelect(distributeMatSelectWrapper, mats, "— wybierz matę —", "distributeMat");
+    createCustomSelect(washingMatSelectWrapper, [], "— wybierz matę logo —", "washingMat");
     
     renderChanges();
     updateFormState();
-    renderMats();
-  }
+    
+    const logoMatsData = await logoMatsPromise;
+    const logoMatNames = logoMatsData.map(m => m.name).filter((v, i, a) => a.indexOf(v) === i).sort();
+    washingMatSelectWrapper.updateOptions(logoMatNames);
+        
+    // ==================== REALTIME SUBSCRIPTIONS ====================
 
+    // Subskrypcja na zmiany w washing_queue
+    const washingChannel = window.supabase
+      .channel('washing-updates')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'washing_queue' 
+      }, async (payload) => {
+        console.log('✨ Zmiana w kolejce prania!', payload);
+        if (currentView === 'washing') {
+          const activeItems = await fetchActiveWashing();
+          renderWashingList(activeItems);
+        }
+      })
+      .subscribe();
+
+    // Subskrypcja na zmiany w logo_mats
+    const matsChannel = window.supabase
+      .channel('mats-updates')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'logo_mats' 
+      }, async (payload) => {
+        console.log('✨ Zmiana w liście mat!', payload);
+        allLogoMats = [];
+        const newMats = await fetchAndCacheLogoMats();
+        
+        if (currentView === 'mats') {
+          renderMats(newMats, matsSearch.value);
+        }
+        
+        const logoMatNames = newMats.map(m => m.name).filter((v, i, a) => a.indexOf(v) === i).sort();
+        washingMatSelectWrapper.updateOptions(logoMatNames);
+      })
+      .subscribe();
+
+    navigateTo('home');
+  }
+  
   init();
-  navigateTo('home');
 });
