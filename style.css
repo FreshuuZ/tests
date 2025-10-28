@@ -443,6 +443,83 @@ h3, h4 {
   gap: 8px;
 }
 
+/* === PRZYCISKI AKCJI MAT === */
+.mats-actions-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-export-excel {
+  background: rgba(16, 124, 16, 0.1);
+  border: 2px solid rgba(16, 124, 16, 0.3);
+  color: #107c10;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.btn-export-excel:hover {
+  background: rgba(16, 124, 16, 0.2);
+  border-color: #107c10;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 124, 16, 0.2);
+}
+
+.btn-export-excel svg {
+  width: 20px;
+  height: 20px;
+}
+
+body.dark .btn-export-excel {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+body.dark .btn-export-excel:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+}
+
+.btn-print-mats {
+  background: rgba(0, 169, 190, 0.1);
+  border: 2px solid rgba(0, 169, 190, 0.3);
+  color: var(--primary);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.btn-print-mats:hover {
+  background: rgba(0, 169, 190, 0.2);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 169, 190, 0.2);
+}
+
+.btn-print-mats svg {
+  width: 20px;
+  height: 20px;
+}
+
+body.dark .btn-print-mats {
+  background: rgba(0, 194, 209, 0.12);
+  border-color: rgba(0, 194, 209, 0.3);
+}
+
+body.dark .btn-print-mats:hover {
+  background: rgba(0, 194, 209, 0.2);
+}
+
 /* --- LISTA MAT --- */
 .mats-list {
   display: flex;
@@ -936,44 +1013,7 @@ body.dark .btn-secondary:hover:not(:disabled) {
   transform: scale(1.05);
 }
 
-/* Przycisk drukowania listy mat */
-.btn-print-mats {
-  background: rgba(0, 169, 190, 0.1);
-  border: 2px solid rgba(0, 169, 190, 0.3);
-  color: var(--primary);
-  padding: 10px 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.95rem;
-  min-height: 44px;
-  white-space: nowrap;
-}
-
-.btn-print-mats:hover {
-  background: rgba(0, 169, 190, 0.2);
-  border-color: var(--primary);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 169, 190, 0.2);
-}
-
-.btn-print-mats svg {
-  width: 20px;
-  height: 20px;
-}
-
-body.dark .btn-print-mats {
-  background: rgba(0, 194, 209, 0.12);
-  border-color: rgba(0, 194, 209, 0.3);
-}
-
-body.dark .btn-print-mats:hover {
-  background: rgba(0, 194, 209, 0.2);
-}
-
-/* --- SYSTEM DOŁOŻEŃ === */
-
-/* Przyciski wyboru akcji */
+/* --- SYSTEM DOŁOŻEŃ --- */
 .action-buttons {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1037,7 +1077,6 @@ body.dark .action-btn:hover {
   line-height: 1.3;
 }
 
-/* Wyróżnienie dołożeń w liście zmian - SUBTELNE */
 .change-addition {
   background: rgba(0, 169, 190, 0.03) !important;
   border: 1px solid rgba(0, 169, 190, 0.2);
@@ -1050,7 +1089,6 @@ body.dark .change-addition {
   border-color: rgba(0, 194, 209, 0.25);
 }
 
-/* Badge dołożenia - subtelny jak inne badge */
 .change-addition-badge {
   display: inline-flex;
   align-items: center;
@@ -1072,7 +1110,6 @@ body.dark .change-addition-badge {
   color: var(--primary);
 }
 
-/* Plus w przycisku - mniejszy */
 #addAdditionBtn .btn-icon svg,
 #addTempAltBtn svg,
 #editAddTempAltBtn svg {
@@ -1313,7 +1350,6 @@ body.dark .multi-alternatives-list li {
   transition: all 0.3s ease; 
 }
 
-/* Animacja ukrywania całej grupy tras */
 .route-group.is-hiding {
   opacity: 0 !important;
   transform: translateX(-20px) scale(0.98) !important;
@@ -1462,7 +1498,6 @@ body.dark #editAdvChangeDetails {
 }
 
 /* === OPTYMALIZACJA MOBILE === */
-/* Hardware acceleration dla animacji */
 .theme-toggle,
 .theme-toggle svg,
 .view,
@@ -1474,17 +1509,14 @@ body.dark #editAdvChangeDetails {
   will-change: transform, opacity;
 }
 
-/* Smooth theme transition tylko dla body */
 body {
   transition: background-color 0.2s ease, color 0.2s ease !important;
 }
 
-/* Szybsze przełączanie motywu */
 body * {
   transition-duration: 0.15s !important;
 }
 
-/* Podczas zmiany motywu wyłącz kosztowne efekty */
 body.transitioning * {
   transition: none !important;
   animation: none !important;
@@ -1494,52 +1526,728 @@ body.transitioning {
   transition: background-color 0.2s ease, color 0.2s ease !important;
 }
 
-/* === PRZYCISKI AKCJI MAT === */
-.mats-actions-buttons {
+/* === KREATOR PODZIAŁU MAT === */
+.advanced-mode-toggle {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
 }
 
-.btn-export-excel {
-  background: rgba(16, 124, 16, 0.1);
-  border: 2px solid rgba(16, 124, 16, 0.3);
-  color: #107c10;
-  padding: 10px 16px;
+.mode-option {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.95rem;
-  min-height: 44px;
-  white-space: nowrap;
+  gap: 12px;
+  padding: 14px;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
 }
 
-.btn-export-excel:hover {
-  background: rgba(16, 124, 16, 0.2);
-  border-color: #107c10;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 124, 16, 0.2);
+.mode-option:hover {
+  border-color: var(--primary);
+  background: rgba(0, 169, 190, 0.03);
 }
 
-.btn-export-excel svg {
+.mode-option input[type="radio"] {
   width: 20px;
   height: 20px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--primary);
+  flex-shrink: 0;
 }
 
-body.dark .btn-export-excel {
-  background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(16, 185, 129, 0.3);
-  color: #10b981;
+.mode-option:has(input:checked) {
+  border-color: var(--primary);
+  background: rgba(0, 169, 190, 0.08);
+  border-width: 3px;
 }
 
-body.dark .btn-export-excel:hover {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: #10b981;
+.mode-option-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mode-option-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.mode-option-desc {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.distribute-step {
+  animation: fadeInSlideUp 0.3s ease;
+}
+
+/* Intro kreatora */
+.distribute-intro {
+  text-align: center;
+  padding: 24px 16px;
+  background: linear-gradient(135deg, rgba(0, 169, 190, 0.05), rgba(227, 6, 19, 0.03));
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 2px dashed var(--border-color);
+}
+
+.distribute-intro-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.distribute-intro h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.distribute-intro p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.distribute-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* Header z nazwą maty */
+.distribute-header-card {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 169, 190, 0.3);
+}
+
+.distribute-header-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.distribute-label-small {
+  font-size: 12px;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.distribute-mat-name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.distribute-counter-big {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.distribute-remaining {
+  color: white;
+}
+
+.distribute-separator {
+  opacity: 0.6;
+  font-size: 20px;
+}
+
+.distribute-total {
+  opacity: 0.8;
+  font-size: 20px;
+}
+
+.distribute-unit {
+  font-size: 14px;
+  opacity: 0.8;
+  margin-left: 2px;
+}
+
+/* Progress container */
+.distribute-progress-container {
+  background: var(--bg-card);
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.distribute-progress-bar {
+  height: 20px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.distribute-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  border-radius: 99px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 10px rgba(0, 169, 190, 0.5);
+}
+
+.distribute-progress-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.distribute-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.distribute-stat-icon {
+  font-size: 16px;
+}
+
+.distribute-stat-label {
+  color: var(--muted);
+}
+
+.distribute-stat strong {
+  color: var(--text);
+  font-size: 16px;
+  margin-left: auto;
+}
+
+.distribute-stat-assigned {
+  border-left: 3px solid var(--primary);
+}
+
+.distribute-stat-left {
+  border-left: 3px solid var(--accent);
+}
+
+/* Formularz dodawania */
+.distribute-add-section {
+  background: rgba(0, 169, 190, 0.04);
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 2px dashed rgba(0, 169, 190, 0.2);
+}
+
+.distribute-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 100px;
+  gap: 8px;
+}
+
+.distribute-client-input {
+  grid-column: 1 / -1;
+  margin: 0 !important;
+}
+
+.distribute-qty-input {
+  margin: 0 !important;
+  text-align: center;
+  font-weight: 600;
+}
+
+.btn-add-client {
+  background: var(--primary);
+  color: white;
+  border: 2px solid var(--primary);
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 52px;
+  margin: 0;
+}
+
+.btn-add-client:hover {
+  background: var(--primary-hover);
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 169, 190, 0.3);
+}
+
+/* Lista klientów */
+.distribute-list-section {
+  margin-bottom: 20px;
+}
+
+.distribute-clients-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 60px;
+}
+
+.distribute-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.distribute-empty-state p {
+  margin: 8px 0 0;
+  font-size: 14px;
+}
+
+.distribute-client-card {
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  animation: fadeInSlideUp 0.3s ease;
+}
+
+.distribute-client-card:hover {
+  border-color: var(--primary);
+  transform: translateX(4px);
+}
+
+.distribute-client-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.distribute-client-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.distribute-client-qty {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.distribute-client-qty strong {
+  color: var(--primary);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.distribute-client-remove {
+  background: rgba(227, 6, 19, 0.1);
+  color: var(--accent);
+  border: 2px solid rgba(227, 6, 19, 0.2);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 600;
+  min-height: auto;
+}
+
+.distribute-client-remove:hover {
+  background: rgba(227, 6, 19, 0.2);
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+
+/* Podsumowanie */
+.distribute-summary {
+  background: linear-gradient(135deg, rgba(0, 169, 190, 0.08), rgba(227, 6, 19, 0.05));
+  border: 2px solid var(--primary);
+  border-radius: 12px;
+  padding: 0;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.distribute-summary-header {
+  background: var(--primary);
+  color: white;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.distribute-summary-icon {
+  font-size: 20px;
+}
+
+.distribute-summary-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  color: white;
+}
+
+.distribute-summary-content {
+  padding: 16px;
+}
+
+.distribute-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.distribute-summary-row span {
+  color: var(--muted);
+}
+
+.distribute-summary-row strong {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.distribute-summary-divider {
+  height: 2px;
+  background: var(--border-color);
+  margin: 12px 0;
+}
+
+.distribute-summary-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.distribute-summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: white;
+  border-radius: 8px;
+  font-size: 13px;
+  border: 1px solid var(--border-color);
+}
+
+body.dark .distribute-summary-item {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.distribute-summary-item-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.distribute-summary-item-qty {
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* Akcje */
+.distribute-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid var(--border-color);
+}
+
+.distribute-actions button {
+  flex: 1;
+  font-size: 15px;
+}
+
+body.dark .distribute-header-card {
+  box-shadow: 0 4px 12px rgba(0, 194, 209, 0.3);
+}
+
+body.dark .distribute-progress-bar {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .distribute-add-section {
+  background: rgba(0, 194, 209, 0.06);
+  border-color: rgba(0, 194, 209, 0.2);
+}
+
+body.dark .distribute-stat {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Highlight nowo dodanych elementów */
+.temp-alt-item.just-added {
+  animation: highlightPulse 1.5s ease;
+  border-color: var(--primary);
+  background: rgba(0, 169, 190, 0.12);
+}
+
+@keyframes highlightPulse {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 169, 190, 0.4);
+  }
+  50% { 
+    transform: scale(1.02);
+    box-shadow: 0 0 0 8px rgba(0, 169, 190, 0);
+  }
+}
+
+body.dark .temp-alt-item.just-added {
+  background: rgba(0, 194, 209, 0.15);
+}
+
+/* === PANEL PRANIA MAT === */
+.washing-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.washing-form .btn-primary {
+  font-size: 1rem;
+  padding: 14px 20px;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.shift-info-card {
+  background: linear-gradient(135deg, rgba(0, 169, 190, 0.08), rgba(227, 6, 19, 0.05));
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: fadeInSlideUp 0.4s ease;
+}
+
+.shift-info-card.active {
+  border-color: var(--primary);
+  background: linear-gradient(135deg, rgba(0, 169, 190, 0.12), rgba(0, 169, 190, 0.08));
+}
+
+.shift-info-card.inactive {
+  border-color: rgba(227, 6, 19, 0.3);
+  background: linear-gradient(135deg, rgba(227, 6, 19, 0.08), rgba(227, 6, 19, 0.05));
+}
+
+.shift-info-icon {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.shift-info-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.shift-info-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.shift-info-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.shift-badge {
+  display: inline-flex;
+  align-items: center;
+  background: var(--primary);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+body.dark .shift-badge {
+  color: #0d1117;
+}
+
+.shift-info-card.inactive .shift-badge {
+  background: var(--accent);
+}
+
+.washing-item {
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.2s ease;
+  animation: fadeInSlideUp 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.washing-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--primary), var(--accent));
+}
+
+.washing-item:hover {
+  border-color: var(--primary);
+  transform: translateX(4px);
+  box-shadow: 0 4px 16px rgba(0, 169, 190, 0.1);
+}
+
+.washing-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.washing-item-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  flex: 1;
+}
+
+.washing-item-shift {
+  background: rgba(0, 169, 190, 0.12);
+  color: var(--primary);
+  border: 1px solid rgba(0, 169, 190, 0.25);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+body.dark .washing-item-shift {
+  background: rgba(0, 194, 209, 0.15);
+  border-color: rgba(0, 194, 209, 0.3);
+}
+
+.washing-item-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.washing-item-detail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.washing-item-detail strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.washing-item-time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.washing-item-time svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+}
+
+/* Responsywność dla panelu prania */
+@media (max-width: 640px) {
+  .shift-info-card {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  
+  .shift-info-icon {
+    font-size: 36px;
+  }
+  
+  .shift-badge {
+    align-self: center;
+  }
+  
+  .washing-item-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .washing-item-shift {
+    align-self: flex-start;
+  }
 }
 
 /* === MEDIA QUERIES === */
 @media (max-width: 640px) {
-  /* Wyłącz kosztowne efekty na mobile */
   .background-aurora {
     filter: blur(80px) saturate(1.2) !important;
     opacity: 0.08 !important;
@@ -1549,7 +2257,6 @@ body.dark .btn-export-excel:hover {
     opacity: 0.12 !important;
   }
   
-  /* Mniejszy backdrop-filter na mobile */
   .app-header,
   .card,
   .app-footer {
@@ -1557,7 +2264,6 @@ body.dark .btn-export-excel:hover {
     -webkit-backdrop-filter: blur(8px) !important;
   }
   
-  /* Wyłącz cienie na mobile dla lepszej wydajności */
   .card,
   .route-group,
   .mat-item {
@@ -1570,7 +2276,6 @@ body.dark .btn-export-excel:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
   }
   
-  /* Przyciski akcji - stack na mobile */
   .card-header {
     flex-direction: column;
     align-items: stretch !important;
@@ -1591,25 +2296,21 @@ body.dark .btn-export-excel:hover {
     justify-content: center;
   }
   
-  /* Header - lepsze łamanie tytułu */
   .brand-title {
     font-size: 1rem;
     line-height: 1.2;
   }
   
-  /* Custom select - mniejsze panele */
   #select-portal > .custom-select-panel.open {
     max-height: 60vh !important;
     width: calc(100vw - 32px) !important;
     left: 16px !important;
   }
   
-  /* Wyszukiwarka - większy font */
   .search-input {
     font-size: 16px !important;
   }
   
-  /* Search input w custom select - większy touch target */
   .custom-select-search {
     font-size: 16px !important;
     padding: 16px !important;
@@ -1617,7 +2318,6 @@ body.dark .btn-export-excel:hover {
     -webkit-tap-highlight-color: transparent;
   }
   
-  /* Opcje w liście - większy touch target */
   .custom-select-options li {
     padding: 14px 16px !important;
     min-height: 48px;
@@ -1625,7 +2325,6 @@ body.dark .btn-export-excel:hover {
     align-items: center;
   }
   
-  /* Przyciski mat - większe dla dotyku */
   .mat-actions .btn-icon-only {
     width: 48px;
     height: 48px;
@@ -1633,17 +2332,14 @@ body.dark .btn-export-excel:hover {
     min-height: 48px;
   }
   
-  /* Toast - wyżej nad klawiaturą */
   .toast.show {
     bottom: 80px;
   }
   
-  /* Modalne - pełna wysokość */
   .modal-content {
     max-height: 85vh;
   }
   
-  /* Przyciski akcji na mobile */
   .action-buttons {
     grid-template-columns: 1fr;
   }
@@ -1652,14 +2348,12 @@ body.dark .btn-export-excel:hover {
     min-height: 120px;
   }
   
-  /* Mniejszy plus na mobile */
   .btn-add-alt {
     padding: 8px;
   }
 }
 
 @media (max-width: 360px) {
-  /* Bardzo małe ekrany */
   .brand-title {
     font-size: 0.9rem;
   }
@@ -1673,7 +2367,6 @@ body.dark .btn-export-excel:hover {
   }
 }
 
-/* Landscape mobile */
 @media (max-width: 768px) and (orientation: landscape) {
   .home-main {
     min-height: auto;
@@ -1690,7 +2383,6 @@ body.dark .btn-export-excel:hover {
   }
 }
 
-/* Touch-friendly - większe obszary klikalne */
 @media (hover: none) and (pointer: coarse) {
   button {
     min-height: 48px;
@@ -1781,7 +2473,6 @@ body.dark .btn-export-excel:hover {
   body > *:not(#print-container) { display: none !important; } 
   #print-container, #print-output { display: block !important; } 
   
-  /* Header druku */
   .print-header { 
     display: flex; 
     justify-content: space-between; 
@@ -1809,7 +2500,6 @@ body.dark .btn-export-excel:hover {
     color: #333; 
   } 
   
-  /* Nagłówki sekcji */
   #print-output h2 { 
     font-size: 14pt; 
     padding-bottom: 6px; 
@@ -1820,7 +2510,6 @@ body.dark .btn-export-excel:hover {
     page-break-after: avoid; 
   } 
   
-  /* Elementy zmian */
   .print-change-item { 
     margin-bottom: 16px;
     break-inside: avoid;
@@ -1859,7 +2548,6 @@ body.dark .btn-export-excel:hover {
     color: #444; 
   }
   
-  /* Styl dla dołożeń w druku - subtelny */
   .print-addition {
     background: #f8f9fa;
     border: 1px solid #dee2e6;
@@ -1880,7 +2568,6 @@ body.dark .btn-export-excel:hover {
     font-weight: 600;
   }
   
-  /* === DRUKOWANIE LISTY MAT === */
   .print-mats-header {
     display: flex;
     justify-content: space-between;
