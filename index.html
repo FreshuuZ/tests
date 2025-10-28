@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Centrum — Elis</title>
+  <title>Elis ServiceHub — Centrum Główne</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0d1117">
@@ -23,8 +23,8 @@
         </svg>
       </button>
       <div class="brand">
-        <img src="icons/icon-192.png" alt="Elis" class="brand-logo">
-        <span class="brand-title" id="headerTitle">Centrum Główne</span>
+        <img src="icons/icon-192.png" alt="Elis ServiceHub" class="brand-logo">
+        <span class="brand-title" id="headerTitle">Elis ServiceHub</span>
       </div>
     </div>
     <button id="themeToggle" class="theme-toggle" aria-label="Zmień motyw">
@@ -38,7 +38,7 @@
     <!-- WIDOK: CENTRUM GŁÓWNE -->
     <div id="homeView" class="view active">
       <main class="home-main">
-        <h1 class="home-welcome">Witaj w Systemie Elis</h1>
+        <h1 class="home-welcome">Witaj w Systemie Elis ServiceHub</h1>
         <p class="home-subtitle">Wybierz moduł, z którego chcesz skorzystać</p>
         
         <div class="home-grid">
@@ -69,6 +69,19 @@
             <div class="home-tile-content">
               <h2>Lista Mat Logo</h2>
               <p>Inwentaryzacja i zarządzanie matami</p>
+            </div>
+          </button>
+
+          <button class="home-tile" data-navigate="washing">
+            <div class="home-tile-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 6v6l4 2"></path>
+              </svg>
+            </div>
+            <div class="home-tile-content">
+              <h2>Pranie Mat Logo</h2>
+              <p>Zarządzanie praniem mat</p>
             </div>
           </button>
         </div>
@@ -139,8 +152,30 @@
                 <button id="advQtyBaseInc" class="btn-secondary" aria-label="Zwiększ">+</button>
               </div>
             </div>
-            
+
+            <!-- WYBÓR TRYBU ZAAWANSOWANEGO -->
             <div class="advanced-section">
+              <h3>Sposób dodawania zamienników</h3>
+              <div class="advanced-mode-toggle">
+                <label class="mode-option">
+                  <input type="radio" name="advancedMode" value="single" checked>
+                  <span class="mode-option-content">
+                    <span class="mode-option-title">Dodawaj pojedynczo</span>
+                    <span class="mode-option-desc">Każdy zamiennik oddzielnie</span>
+                  </span>
+                </label>
+                <label class="mode-option">
+                  <input type="radio" name="advancedMode" value="distribute">
+                  <span class="mode-option-content">
+                    <span class="mode-option-title">Podziel między klientów</span>
+                    <span class="mode-option-desc">Rozpisz jedną matę na wielu klientów</span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- TRYB: DODAWAJ POJEDYNCZO (obecny system) -->
+            <div id="singleModeSection" class="advanced-section">
               <h3>Kreator listy zamienników</h3>
               <div class="multi-alt-builder">
                 <div id="multiAltSelectWrapper" class="custom-select-wrapper"></div>
@@ -156,11 +191,122 @@
               </div>
               <div id="tempMultiAltList" class="temp-multi-alt-list"></div>
             </div>
+
+            <!-- TRYB: PODZIEL MIĘDZY KLIENTÓW (nowy system) -->
+            <div id="distributeModeSection" class="advanced-section" style="display: none;">
+              <div id="distributeStep1" class="distribute-step">
+                <div class="distribute-intro">
+                  <div class="distribute-intro-icon">📊</div>
+                  <h3>Kreator podziału mat</h3>
+                  <p>Wybierz matę i podaj całkowitą ilość, którą chcesz rozdzielić między klientów</p>
+                </div>
+                
+                <div id="distributeMatSelectWrapper" class="custom-select-wrapper"></div>
+                
+                <div class="input-row">
+                  <label class="distribute-label">Całkowita ilość do rozdzielenia:</label>
+                  <input type="number" id="distributeTotalQty" min="1" max="100" value="1" inputmode="numeric" placeholder="Np. 10">
+                </div>
+                
+                <button id="startDistributeBtn" class="btn-primary" style="width: 100%; margin-top: 16px;">
+                  <span style="font-size: 20px; margin-right: 8px;">▶️</span> Rozpocznij podział
+                </button>
+              </div>
+
+              <div id="distributeStep2" class="distribute-step" style="display: none;">
+                <!-- Header z nazwą maty -->
+                <div class="distribute-header-card">
+                  <div class="distribute-header-main">
+                    <span class="distribute-label-small">Dzielisz:</span>
+                    <h3 id="distributeMatName" class="distribute-mat-name">microtech 150x85</h3>
+                  </div>
+                  <div class="distribute-counter-big">
+                    <span id="distributeRemaining" class="distribute-remaining">10</span>
+                    <span class="distribute-separator">/</span>
+                    <span id="distributeTotal" class="distribute-total">10</span>
+                    <span class="distribute-unit">szt.</span>
+                  </div>
+                </div>
+                
+                <!-- Progress bar -->
+                <div class="distribute-progress-container">
+                  <div class="distribute-progress-bar">
+                    <div id="distributeProgressFill" class="distribute-progress-fill" style="width: 0%"></div>
+                  </div>
+                  <div class="distribute-progress-stats">
+                    <div class="distribute-stat distribute-stat-assigned">
+                      <span class="distribute-stat-icon">✓</span>
+                      <span class="distribute-stat-label">Przydzielono:</span>
+                      <strong id="distributeAssigned">0</strong> szt.
+                    </div>
+                    <div class="distribute-stat distribute-stat-left">
+                      <span class="distribute-stat-icon">⏳</span>
+                      <span class="distribute-stat-label">Pozostało:</span>
+                      <strong id="distributeLeft">10</strong> szt.
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Formularz dodawania klienta -->
+                <div class="distribute-add-section">
+                  <h4 style="margin: 0 0 12px; font-size: 14px; color: var(--text); text-transform: none; letter-spacing: 0;">Dodaj klienta do podziału:</h4>
+                  <div class="distribute-form-grid">
+                    <input type="text" id="distributeClientInput" placeholder="Nazwa klienta" class="distribute-client-input">
+                    <input type="number" id="distributeClientQty" min="1" value="1" inputmode="numeric" placeholder="Ilość" class="distribute-qty-input">
+                    <button id="addDistributeClientBtn" class="btn-add-client">
+                      <span style="font-size: 18px;">+</span> Dodaj
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Lista klientów z podziałem -->
+                <div class="distribute-list-section">
+                  <h4 style="margin: 0 0 12px; font-size: 14px; color: var(--text); text-transform: none; letter-spacing: 0;">Aktualny podział:</h4>
+                  <div id="distributeClientsList" class="distribute-clients-list">
+                    <div class="distribute-empty-state">
+                      <span style="font-size: 32px; opacity: 0.3;">📋</span>
+                      <p>Nie dodano jeszcze żadnych klientów</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Podsumowanie przed zatwierdzeniem -->
+                <div id="distributeSummary" class="distribute-summary" style="display: none;">
+                  <div class="distribute-summary-header">
+                    <span class="distribute-summary-icon">📝</span>
+                    <h4>Podsumowanie podziału</h4>
+                  </div>
+                  <div class="distribute-summary-content">
+                    <div class="distribute-summary-row">
+                      <span>Mata:</span>
+                      <strong id="distributeSummaryMat">-</strong>
+                    </div>
+                    <div class="distribute-summary-row">
+                      <span>Liczba klientów:</span>
+                      <strong id="distributeSummaryCount">-</strong>
+                    </div>
+                    <div class="distribute-summary-divider"></div>
+                    <div id="distributeSummaryList" class="distribute-summary-items"></div>
+                  </div>
+                </div>
+
+                <!-- Przyciski akcji -->
+                <div class="distribute-actions">
+                  <button id="cancelDistributeBtn" class="btn-secondary">
+                    <span style="font-size: 16px; margin-right: 6px;">✖️</span> Anuluj
+                  </button>
+                  <button id="confirmDistributeBtn" class="btn-primary" disabled>
+                    <span style="font-size: 16px; margin-right: 6px;">✓</span> Zatwierdź podział
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           
+          <!-- PRZYCISK DODAJ - NA ZEWNĄTRZ KONTENERÓW! -->
           <button id="addBtn" class="btn-primary" disabled>
             <span class="btn-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
             </span>
             <span class="btn-label">Dodaj do listy zmian</span>
           </button>
@@ -234,10 +380,35 @@
       </main>
     </div>
 
-  </div>
+    <!-- WIDOK: PRANIE MAT LOGO -->
+    <div id="washingView" class="view">
+      <main class="app-main">
+        
+        <!-- Formularz dodawania -->
+        <section class="card">
+          <h2>🧼 Dodaj matę do prania</h2>
+          <div class="washing-form">
+            <div id="washingMatSelectWrapper" class="custom-select-wrapper"></div>
+            <button id="addToWashingBtn" class="btn-primary" disabled>
+              Wrzuć do prania
+            </button>
+          </div>
+        </section>
+
+        <!-- Info o zmianie -->
+        <div id="currentShiftInfo" class="shift-info-card"></div>
+
+        <!-- Aktywne prania -->
+        <section>
+          <h2 class="section-title">🌀 Aktywnie w praniu</h2>
+          <div id="activeWashingList" class="list"></div>
+        </section>
+
+      </main>
+    </div>
 
   <footer class="app-footer">
-    <span>Created by Dominik Bocian</span>
+    <span>Created by D. & M. Bocian</span>
   </footer>
 
   <div id="toast" class="toast"></div>
@@ -336,7 +507,17 @@
   <div id="select-portal"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-  <script src="logoData.js"></script>
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Konfiguracja Supabase -->
+  <script>
+    const SUPABASE_URL = 'https://sdvlxgizrypjyssccupy.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdmx4Z2l6cnlwanlzc2NjdXB5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2NzA4MjYsImV4cCI6MjA3NzI0NjgyNn0._St2quW9Kc0Shpd-naSp2o01HUxSoSy6k4S29ORe8yM';
+    window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  </script>
+  
+  <!-- <script src="logoData.js"></script> -->
   <script src="script.js"></script>
 </body>
 </html>
