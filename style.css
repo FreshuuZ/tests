@@ -4476,29 +4476,29 @@ body.dark .location-type-option input:checked + .location-type-content {
 .mat-number-badge {
   display: inline-flex;
   align-items: center;
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(139, 92, 246, 0.15);
   color: #8b5cf6;
-  border: 1px solid rgba(139, 92, 246, 0.25);
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 15px; /* powiększone */
+  font-weight: 800; /* grubsze */
   margin-left: 8px;
   font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
   letter-spacing: 0.5px;
 }
 
 body.dark .mat-number-badge {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.35);
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.5);
   color: #a78bfa;
 }
 
 /* Responsywność */
 @media (max-width: 480px) {
   .mat-number-badge {
-    font-size: 11px;
-    padding: 2px 6px;
+    font-size: 14px; /* powiększone z 11px */
+    padding: 3px 8px;
     margin-left: 6px;
   }
   
