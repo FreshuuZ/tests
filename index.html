@@ -804,7 +804,7 @@
             </div>
             <div class="stat-card">
               <div class="stat-value" id="inventoryNotOk" style="color: #ff4b4b;">0</div>
-              <div class="stat-label">Brak zgodności</div>
+              <div class="stat-label">Niezgodne</div>
             </div>
           </div>
 
@@ -835,6 +835,29 @@
   </footer>
 
   <div id="toast" class="toast"></div>
+
+  <!-- ==================== MODALE INWENTARYZACJI ==================== -->
+  <div id="inventoryLoadModal" class="modal">
+    <div class="modal-content">
+      <h3>Wczytaj listę mat</h3>
+      <p>Czy na pewno chcesz wczytać listę mat z głównej bazy? Zastąpi to obecną inwentaryzację nowymi pozycjami i zresetuje wszystkie oznaczenia.</p>
+      <div class="modal-actions">
+        <button id="inventoryLoadCancel" class="btn-secondary">Anuluj</button>
+        <button id="inventoryLoadConfirm" class="btn-primary">Wczytaj</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="inventoryClearModal" class="modal">
+    <div class="modal-content">
+      <h3>Wyczyść oznaczenia</h3>
+      <p>Czy na pewno chcesz wyczyścić wszystkie oznaczenia (zgodne/niezgodne)? Maty wrócą do stanu niesprawdzonych.</p>
+      <div class="modal-actions">
+        <button id="inventoryClearCancel" class="btn-secondary">Anuluj</button>
+        <button id="inventoryClearConfirm" class="btn-danger">Wyczyść</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ==================== MODALE PANEL TRAS ==================== -->
   <div id="editSimpleModal" class="modal">
