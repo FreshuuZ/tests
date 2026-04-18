@@ -4705,3 +4705,51 @@ body.dark .mat-number-badge {
   width: 20px;
   height: 20px;
 }
+
+.inventory-qty-control {
+  display: flex;
+  align-items: center;
+  background: var(--bg-body);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.inventory-qty-control button {
+  background: none;
+  border: none;
+  color: var(--text);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.inventory-qty-control button:hover {
+  background: rgba(0, 169, 190, 0.1);
+  color: var(--primary);
+}
+
+.inventory-qty-control input {
+  width: 44px;
+  text-align: center;
+  background: none;
+  border: none;
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  -moz-appearance: textfield;
+  padding: 0;
+}
+
+.inventory-qty-control input::-webkit-outer-spin-button,
+.inventory-qty-control input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
