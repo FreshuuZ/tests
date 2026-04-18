@@ -1832,7 +1832,59 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Paginacja inwentaryzacji
+  async function executeLoadToLogoMatsFromInventory() {
+    try {
+      showToast("Pobieranie zatwierdzonych stanów z inwentaryzacji...", "success");
+      
+      const { data: invMats, error: readError } = await window.supabase
+        .from('inventory_mats')
+        .select('*');
+        
+      if (readError) throw readError;
+
+      if (!invMats || invMats.length === 0) {
+        showToast("Brak mat w inwentaryzacji do skopiowania.", "error");
+        return;
+      }
+
+      const newLogoMats = invMats.map(mat => ({
+        name: mat.name,
+        mat_number: mat.mat_number,
+        location: mat.location,
+        size: mat.size,
+        quantity: mat.quantity
+      }));
+
+      // Usuń stare wpisy z logo_mats
+      const { error: deleteError } = await window.supabase
+        .from('logo_mats')
+        .delete()
+        .not('id', 'is', null);
+
+      if (deleteError) throw deleteError;
+
+      // Wstaw nowe inwentaryzacje z powrotem
+      const batchSize = 500;
+      for (let i = 0; i < newLogoMats.length; i += batchSize) {
+        const batch = newLogoMats.slice(i, i + batchSize);
+        const { error: insertError } = await window.supabase
+          .from('logo_mats')
+          .insert(batch);
+        if (insertError) throw insertError;
+      }
+
+      showToast(`Nadpisano główną bazę stanem z inwentaryzacji!`, "success");
+      allLogoMats = [];
+      const newMats = await fetchAndCacheLogoMats();
+      renderMats(newMats, matsSearch.value);
+      
+    } catch (error) {
+      console.error("Błąd kopiowania danych z inwentaryzacji do logo_mats:", error);
+      showToast("Nie udało się skopiować danych: " + (error.message || error), "error");
+    }
+  }
+
+  // Funkcje aktualizacji inwentaryzacji
   const INV_PER_PAGE = 30;
   let filteredInventoryCache = [];
   let currentInventoryPage = 0;
@@ -1900,7 +1952,7 @@ document.addEventListener("DOMContentLoaded", () => {
       div.className = `mat-item inventory-item status-${mat.status || 'unchecked'}`;
       div.dataset.invId = mat.id;
 
-      const matNumberBadge = mat.mat_number ? `<span class="mat-number-badge">#${mat.mat_number}</span>` : '';
+      const matNumberBadge = mat.mat_number ? `<span class="mat-number-badge">${mat.mat_number}</span>` : '';
 
       div.innerHTML = `
         <div class="mat-info">
@@ -2309,7 +2361,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ` : '';
     
     // Numer maty badge
-    const matNumberBadge = mat.mat_number ? `<span class="mat-number-badge">#${mat.mat_number}</span>` : '';
+    const matNumberBadge = mat.mat_number ? `<span class="mat-number-badge">${mat.mat_number}</span>` : '';
     
     div.innerHTML = `
       <div class="mat-info">
@@ -5452,6 +5504,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function getReportTypeLabel(type) {
     if (type === 'missing_quantity') return 'Brak liczbowy';
     if (type === 'damaged') return 'Mata zniszczona';
+    if (type === 'over_quantity') return 'Nad stan liczbowy';
     return type;
   }
 
@@ -5461,6 +5514,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (type === 'damaged') {
       return `<div class="report-card-badge report-badge-damaged">Zniszczona</div>`;
+    }
+    if (type === 'over_quantity') {
+      return `<div class="report-card-badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.25);">Nad stan</div>`;
     }
     return '';
   }
@@ -5884,8 +5940,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const resDate = report.resolved_at ? new Date(report.resolved_at).toLocaleString('pl-PL') : '';
       let actionLabel = report.response_type;
       if (actionLabel === 'repair') actionLabel = '🔧 Naprawa maty';
-      if (actionLabel === 'replace') actionLabel = '🔄 Zamiana maty';
-      if (actionLabel === 'add_mat') actionLabel = '➕ Dołożenie maty';
+      if (actionLabel === 'utilize') actionLabel = '🗑️ Utylizacja maty';
+      if (actionLabel === 'replace_set') actionLabel = '🔄 Wymiana kompletu';
+      if (actionLabel === 'over_quantity_ok') actionLabel = '✅ Nad stan (Akceptacja)';
       if (actionLabel === 'custom') actionLabel = 'Własna odpowiedź';
 
       reportDetailResolved.innerHTML = `
@@ -5904,6 +5961,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
   reportDetailClose?.addEventListener('click', () => {
     closeModal(reportDetailModal);
+  });
+
+  const reportDetailDelete = document.getElementById('reportDetailDelete');
+  
+  // Customowa funkcja usuwania zgłoszenia
+  reportDetailDelete?.addEventListener('click', async () => {
+    if (!currentlyViewedReportId) return;
+    
+    if (!confirm('Czy na pewno chcesz na zawsze usunąć trwale to zgłoszenie ze Sprawdzonych?')) return;
+    
+    const origText = reportDetailDelete.innerText;
+    reportDetailDelete.innerText = 'Usuwanie...';
+    reportDetailDelete.disabled = true;
+
+    try {
+      const { error } = await window.supabase
+        .from('reports')
+        .delete()
+        .eq('id', currentlyViewedReportId);
+
+      if (error) throw error;
+      
+      showToast('Zgłoszenie trwale usunięte!', 'success');
+      closeModal(reportDetailModal);
+      await fetchReports();
+    } catch (err) {
+      console.error("Błąd usuwania zgłoszenia", err);
+      showToast('Nie udało się usunąć zgłoszenia.', 'error');
+    } finally {
+      reportDetailDelete.innerText = origText;
+      reportDetailDelete.disabled = false;
+    }
   });
 
   // Obsługa przycisków
