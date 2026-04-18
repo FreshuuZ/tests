@@ -1960,15 +1960,15 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="mat-info">
           <div class="mat-name">
             ${escapeHtml(mat.name)}
-            ${matNumberBadge}
           </div>
           <div class="mat-details">
             ${mat.location ? `<div class="mat-detail-item"><strong>${formatLocation(mat.location)}</strong></div>` : ''}
             ${mat.size ? `<div class="mat-detail-item">📏 ${escapeHtml(mat.size)}</div>` : ''}
           </div>
         </div>
-        <div class="mat-actions">
-          <div class="inventory-actions">
+        <div class="mat-actions" style="align-items: center; justify-content: space-between;">
+          ${matNumberBadge}
+          <div class="inventory-actions" style="display: flex; align-items: center; gap: 8px;">
             <button class="btn-inventory-ok" data-id="${mat.id}" aria-label="Zgodność">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"></polyline>
@@ -2353,12 +2353,13 @@ document.addEventListener("DOMContentLoaded", () => {
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
           </svg>
         </button>
+        ${mat.status !== 'pending' ? `
         <button class="btn-delete-mat" data-mat-id="${mat.id}" aria-label="Usuń matę">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="3 6 5 6 21 6"/>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
           </svg>
-        </button>
+        </button>` : ''}
       </div>
     ` : '';
     
@@ -5482,6 +5483,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const reportsDeleteOldConfirm = document.getElementById('reportsDeleteOldConfirm');
 
   const reportFormModal = document.getElementById('reportFormModal');
+  const reportDeleteConfirmModal = document.getElementById('reportDeleteConfirmModal');
+  const reportDeleteConfirmCancel = document.getElementById('reportDeleteConfirmCancel');
+  const reportDeleteConfirmConfirm = document.getElementById('reportDeleteConfirmConfirm');
   const reportFormCancel = document.getElementById('reportFormCancel');
   const reportFormSubmit = document.getElementById('reportFormSubmit');
   
@@ -5954,12 +5958,14 @@ document.addEventListener("DOMContentLoaded", () => {
         ${report.response_text ? `<p><strong>Notatka:</strong> ${escapeHtml(report.response_text)}</p>` : ''}
         <p style="font-size: 0.8rem; margin-top: 8px; color: var(--muted);">Sprawdzono: ${resDate}</p>
       `;
-      reportDetailDelete.style.display = 'block';
+      // Przywracam pokazanie jak jest RESOLVED
+      document.getElementById('reportDetailDelete').style.display = 'block';
     } else {
       reportDetailActions.style.display = 'block';
       reportDetailResolved.style.display = 'none';
       reportResolveBtn.disabled = true;
-      reportDetailDelete.style.display = 'none';
+      // Wymuszam ukrycie jak jest PENDING
+      document.getElementById('reportDetailDelete').style.display = 'none';
     }
 
     openModal(reportDetailModal);
@@ -5971,15 +5977,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const reportDetailDelete = document.getElementById('reportDetailDelete');
   
-  // Customowa funkcja usuwania zgłoszenia
-  reportDetailDelete?.addEventListener('click', async () => {
+  // Customowa funkcja usuwania zgłoszenia z dodatkowym modalem
+  reportDetailDelete?.addEventListener('click', () => {
+    openModal(reportDeleteConfirmModal);
+  });
+
+  reportDeleteConfirmCancel?.addEventListener('click', () => {
+    closeModal(reportDeleteConfirmModal);
+  });
+
+  reportDeleteConfirmConfirm?.addEventListener('click', async () => {
     if (!currentlyViewedReportId) return;
     
-    if (!confirm('Czy na pewno chcesz na zawsze usunąć trwale to zgłoszenie ze Sprawdzonych?')) return;
-    
-    const origText = reportDetailDelete.innerText;
-    reportDetailDelete.innerText = 'Usuwanie...';
-    reportDetailDelete.disabled = true;
+    const origText = reportDeleteConfirmConfirm.innerText;
+    reportDeleteConfirmConfirm.innerText = 'Usuwanie...';
+    reportDeleteConfirmConfirm.disabled = true;
 
     try {
       const { error } = await window.supabase
@@ -5990,14 +6002,15 @@ document.addEventListener("DOMContentLoaded", () => {
       if (error) throw error;
       
       showToast('Zgłoszenie trwale usunięte!', 'success');
-      closeModal(reportDetailModal);
+      closeModal(reportDeleteConfirmModal);
+      closeModal(reportDetailModal); // zamknięcie głównego modala również
       await fetchReports();
     } catch (err) {
       console.error("Błąd usuwania zgłoszenia", err);
       showToast('Nie udało się usunąć zgłoszenia.', 'error');
     } finally {
-      reportDetailDelete.innerText = origText;
-      reportDetailDelete.disabled = false;
+      reportDeleteConfirmConfirm.innerText = origText;
+      reportDeleteConfirmConfirm.disabled = false;
     }
   });
 
