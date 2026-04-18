@@ -574,7 +574,8 @@ document.addEventListener("DOMContentLoaded", () => {
     archive: document.getElementById('archiveView'), // Przedsionek
     'archive-replacements': document.getElementById('archiveReplacementsView'), // NOWE
     'archive-washing': document.getElementById('archiveWashingView'), // NOWE (zmienione z archiveView)
-    inventory: document.getElementById('inventoryView')
+    inventory: document.getElementById('inventoryView'),
+    reports: document.getElementById('reportsView')
   };
   
   const headerTitle = document.getElementById('headerTitle');
@@ -588,7 +589,8 @@ document.addEventListener("DOMContentLoaded", () => {
     'archive': 'home',
     'archive-replacements': 'archive',
     'archive-washing': 'archive',
-    'inventory': 'home'
+    'inventory': 'home',
+    'reports': 'home'
   };
   
   function navigateTo(viewName) {
@@ -635,6 +637,12 @@ document.addEventListener("DOMContentLoaded", () => {
       headerTitle.textContent = 'Archiwum Prań Mat';
       backBtn.style.display = 'flex';
       loadArchiveData();
+    } else if (viewName === 'reports') {
+      headerTitle.textContent = 'Zgłoszenia';
+      backBtn.style.display = 'flex';
+      (async () => {
+          await fetchReports();
+      })();
     }
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1996,14 +2004,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const okBtn = e.target.closest('.btn-inventory-ok');
     if (okBtn) {
       e.stopPropagation();
-      updateInventoryStatus(okBtn.dataset.id, 'ok');
+      const id = okBtn.dataset.id;
+      const mat = allInventoryMats.find(m => m.id === id);
+      // Toggle: jeśli już jest 'ok', cofnij do 'unchecked'
+      const newStatus = (mat && mat.status === 'ok') ? 'unchecked' : 'ok';
+      updateInventoryStatus(id, newStatus);
       return;
     }
 
     const notOkBtn = e.target.closest('.btn-inventory-not-ok');
     if (notOkBtn) {
       e.stopPropagation();
-      updateInventoryStatus(notOkBtn.dataset.id, 'not_ok');
+      const id = notOkBtn.dataset.id;
+      const mat = allInventoryMats.find(m => m.id === id);
+      // Toggle: jeśli już jest 'not_ok', cofnij do 'unchecked'
+      const newStatus = (mat && mat.status === 'not_ok') ? 'unchecked' : 'not_ok';
+      updateInventoryStatus(id, newStatus);
       return;
     }
 
@@ -5335,9 +5351,552 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .subscribe();
 
+    // Dodanie Realtime dla inwentaryzacji
+    const inventoryChannel = window.supabase
+      .channel('inventory-updates')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'inventory_mats' 
+      }, async (payload) => {
+        console.log('✨ Zmiana w inwentaryzacji!', payload);
+        if (currentView === 'inventory') {
+          const newMats = await fetchInventoryMats();
+          renderInventory(newMats, document.getElementById('inventorySearch')?.value || '');
+        }
+      })
+      .subscribe();
+
+    // Dodanie Realtime dla zgłoszeń
+    const reportsChannel = window.supabase
+      .channel('reports-updates')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'reports' 
+      }, async (payload) => {
+        console.log('✨ Zmiana w zgłoszeniach!', payload);
+        if (currentView === 'reports') {
+          await fetchReports();
+        }
+      })
+      .subscribe();
+
     initPalletSystem();
     navigateTo('home');
   }
+
+  // ==================== ZGŁOSZENIA (LOGIKA JS) ====================
+  const REPORT_PER_PAGE = 30;
+  let allReports = [];
+  let filteredReportsCache = [];
+  let currentReportPage = 0;
+  let isLoadingMoreReports = false;
+  let reportsObserver = null;
+  let currentReportTab = 'pending'; // 'pending' | 'resolved'
+  let reportCurrentFile = null;
+  let currentlyViewedReportId = null;
+
+  const reportsSearch = document.getElementById('reportsSearch');
+  const reportsList = document.getElementById('reportsList');
+  const reportsPendingCount = document.getElementById('reportsPendingCount');
+  const reportsResolvedCount = document.getElementById('reportsResolvedCount');
+  const newReportBtn = document.getElementById('newReportBtn');
+  const reportsTabs = document.querySelectorAll('.reports-tab');
+
+  const reportFormModal = document.getElementById('reportFormModal');
+  const reportFormCancel = document.getElementById('reportFormCancel');
+  const reportFormSubmit = document.getElementById('reportFormSubmit');
+  
+  const reportMatName = document.getElementById('reportMatName');
+  const reportDescription = document.getElementById('reportDescription');
+  const reportFileInput = document.getElementById('reportFileInput');
+  const reportFileBtnCamera = document.getElementById('reportFileBtnCamera');
+  const reportFileBtnGallery = document.getElementById('reportFileBtnGallery');
+  const reportFilePreview = document.getElementById('reportFilePreview');
+  const reportPreviewImg = document.getElementById('reportPreviewImg');
+  const reportFileRemove = document.getElementById('reportFileRemove');
+  const reportTypeBtns = document.querySelectorAll('.report-type-btn');
+
+  const reportDetailModal = document.getElementById('reportDetailModal');
+  const reportDetailBody = document.getElementById('reportDetailBody');
+  const reportDetailActions = document.getElementById('reportDetailActions');
+  const reportDetailResolved = document.getElementById('reportDetailResolved');
+  const reportDetailClose = document.getElementById('reportDetailClose');
+  const reportResponseText = document.getElementById('reportResponseText');
+  const reportResolveBtn = document.getElementById('reportResolveBtn');
+  const quickActionBtns = document.querySelectorAll('.quick-action-btn');
+
+  // Funkcje narzędziowe zgłoszeń
+  function getReportTypeLabel(type) {
+    if (type === 'missing_quantity') return 'Brak liczbowy';
+    if (type === 'damaged') return 'Mata zniszczona';
+    return type;
+  }
+
+  function getReportBadgeHtml(type) {
+    if (type === 'missing_quantity') {
+      return `<div class="report-card-badge report-badge-missing">Brak liczbowy</div>`;
+    }
+    if (type === 'damaged') {
+      return `<div class="report-card-badge report-badge-damaged">Zniszczona</div>`;
+    }
+    return '';
+  }
+
+  // Pobieranie zgłoszeń z Supabase
+  async function fetchReports() {
+    reportsList.innerHTML = `<div class="empty-state"><div class="empty-state-text">Pobieranie zgłoszeń...</div></div>`;
+    hideReportsLoadMore();
+    try {
+      const { data, error } = await window.supabase
+        .from('reports')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      allReports = data || [];
+      renderReports();
+    } catch (error) {
+      console.error("Błąd pobierania zgłoszeń:", error);
+      showToast("Nie udało się pobrać zgłoszeń.", "error");
+      reportsList.innerHTML = `<div class="empty-state error"><div class="empty-state-text">Błąd pobierania danych z bazy.</div></div>`;
+    }
+  }
+
+  // Obliczanie licznika zakładek
+  function updateReportsCounts() {
+    const pendingCount = allReports.filter(r => r.status === 'pending').length;
+    const resolvedCount = allReports.filter(r => r.status === 'resolved').length;
+    reportsPendingCount.textContent = pendingCount;
+    reportsResolvedCount.textContent = resolvedCount;
+  }
+
+  // Renderowanie zgłoszeń z paginacją
+  function renderReports(filter = reportsSearch?.value || '') {
+    updateReportsCounts();
+    
+    let filtered = allReports.filter(r => r.status === currentReportTab);
+    const search = filter.toLowerCase().trim();
+    if (search) {
+      filtered = filtered.filter(r => {
+        return (r.mat_name?.toLowerCase() || '').includes(search) ||
+               (r.description?.toLowerCase() || '').includes(search) ||
+               (getReportTypeLabel(r.report_type).toLowerCase()).includes(search);
+      });
+    }
+
+    filteredReportsCache = filtered;
+    currentReportPage = 0;
+    isLoadingMoreReports = false;
+
+    if (reportsObserver) {
+      reportsObserver.disconnect();
+      reportsObserver = null;
+    }
+
+    reportsList.innerHTML = '';
+    hideReportsLoadMore();
+
+    if (filteredReportsCache.length === 0) {
+      const typeText = currentReportTab === 'pending' ? 'oczekujących' : 'sprawdzonych';
+      reportsList.innerHTML = `<div class="empty-state"><div class="empty-state-text">Brak ${typeText} zgłoszeń.</div></div>`;
+      return;
+    }
+
+    renderReportsChunk();
+
+    if (filteredReportsCache.length > REPORT_PER_PAGE) {
+      setTimeout(() => setupReportsObserver(), 100);
+    }
+  }
+
+  function renderReportsChunk() {
+    const start = currentReportPage * REPORT_PER_PAGE;
+    const end = start + REPORT_PER_PAGE;
+    const reportsToRender = filteredReportsCache.slice(start, end);
+
+    if (reportsToRender.length === 0) {
+      hideReportsLoadMore();
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+
+    reportsToRender.forEach(report => {
+      const div = document.createElement('div');
+      div.className = 'report-card';
+      div.dataset.reportId = report.id;
+
+      const dateStr = new Date(report.created_at).toLocaleString('pl-PL', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+
+      const attachmentHtml = report.attachment_url ? 
+        `<div class="report-card-attachment">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          Tak
+        </div>` : '';
+
+      const resolvedStr = report.status === 'resolved' ? 
+        `<span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#00d26a" stroke-width="2" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Rozwiązano</span>` : '';
+
+      div.innerHTML = `
+        <div class="report-card-header">
+          <div class="report-card-title">${escapeHtml(report.mat_name)}</div>
+          ${getReportBadgeHtml(report.report_type)}
+        </div>
+        <div class="report-card-meta">
+          <span>📅 ${dateStr}</span>
+          ${attachmentHtml}
+          ${resolvedStr}
+        </div>
+        ${report.description ? `<div class="report-card-desc">${escapeHtml(report.description)}</div>` : ''}
+      `;
+      fragment.appendChild(div);
+    });
+
+    reportsList.appendChild(fragment);
+
+    if (end < filteredReportsCache.length) {
+      showReportsLoadMore();
+    } else {
+      hideReportsLoadMore();
+    }
+  }
+
+  function setupReportsObserver() {
+    const sentinel = document.getElementById('reportsLoadMoreSentinel');
+    if (!sentinel) return;
+
+    if (reportsObserver) {
+      reportsObserver.disconnect();
+    }
+
+    reportsObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !isLoadingMoreReports) {
+          loadMoreReports();
+        }
+      });
+    }, {
+      root: null,
+      rootMargin: '300px',
+      threshold: 0
+    });
+    reportsObserver.observe(sentinel);
+  }
+
+  function loadMoreReports() {
+    const nextStart = (currentReportPage + 1) * REPORT_PER_PAGE;
+    if (nextStart >= filteredReportsCache.length) {
+      hideReportsLoadMore();
+      return;
+    }
+    isLoadingMoreReports = true;
+    requestAnimationFrame(() => {
+      currentReportPage++;
+      renderReportsChunk();
+      setTimeout(() => { isLoadingMoreReports = false; }, 50);
+    });
+  }
+
+  function showReportsLoadMore() {
+    const sentinel = document.getElementById('reportsLoadMoreSentinel');
+    if (sentinel) sentinel.style.display = 'flex';
+  }
+
+  function hideReportsLoadMore() {
+    const sentinel = document.getElementById('reportsLoadMoreSentinel');
+    if (sentinel) sentinel.style.display = 'none';
+  }
+
+  // Zakładki i wyszukiwanie
+  reportsTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      reportsTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentReportTab = tab.dataset.tab;
+      renderReports();
+    });
+  });
+
+  reportsSearch?.addEventListener('input', (e) => {
+    renderReports(e.target.value);
+  });
+
+  // Nowe zgłoszenie - obsługa UI
+  newReportBtn?.addEventListener('click', () => {
+    reportMatName.value = '';
+    reportDescription.value = '';
+    reportCurrentFile = null;
+    reportFileInput.value = '';
+    reportFilePreview.style.display = 'none';
+    reportPreviewImg.src = '';
+    
+    reportTypeBtns.forEach(b => b.classList.remove('active'));
+    document.querySelector('.report-type-btn[data-type="missing_quantity"]')?.classList.add('active');
+
+    openModal(reportFormModal);
+  });
+
+  reportFormCancel?.addEventListener('click', () => closeModal(reportFormModal));
+
+  reportTypeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      reportTypeBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Upload plików API HTML
+  reportFileBtnCamera?.addEventListener('click', () => {
+    reportFileInput.setAttribute('capture', 'environment');
+    reportFileInput.click();
+  });
+
+  reportFileBtnGallery?.addEventListener('click', () => {
+    reportFileInput.removeAttribute('capture');
+    reportFileInput.click();
+  });
+
+  reportFileInput?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      reportCurrentFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        reportPreviewImg.src = e.target.result;
+        reportFilePreview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  reportFileRemove?.addEventListener('click', () => {
+    reportCurrentFile = null;
+    reportFileInput.value = '';
+    reportFilePreview.style.display = 'none';
+    reportPreviewImg.src = '';
+  });
+
+  function generateUuid() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  async function uploadReportImage(file) {
+    if (!file) return null;
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${generateUuid()}.${fileExt}`;
+
+      const { data, error } = await window.supabase.storage
+        .from('report-attachments')
+        .upload(fileName, file);
+
+      if (error) throw error;
+      
+      const { data: publicData } = window.supabase.storage
+        .from('report-attachments')
+        .getPublicUrl(fileName);
+
+      return publicData.publicUrl;
+    } catch (err) {
+      console.error("Błąd uploadu załącznika:", err);
+      showToast("Nie udało się zgrać zdjęcia. Zgłoszenie bez zdjęcia.", "error");
+      return null;
+    }
+  }
+
+  // Zapis do bazy
+  reportFormSubmit?.addEventListener('click', async () => {
+    const matName = reportMatName.value.trim();
+    if (!matName) {
+      showToast("Wpisz nazwę maty!", "error");
+      return;
+    }
+
+    const typeBtn = document.querySelector('.report-type-btn.active');
+    const reportType = typeBtn ? typeBtn.dataset.type : 'missing_quantity';
+    const description = reportDescription.value.trim();
+    
+    // Blokada guzika
+    const origText = reportFormSubmit.innerText;
+    reportFormSubmit.innerText = 'Wysyłanie...';
+    reportFormSubmit.disabled = true;
+
+    try {
+      let attachmentUrl = null;
+      if (reportCurrentFile) {
+        attachmentUrl = await uploadReportImage(reportCurrentFile);
+      }
+
+      const { error } = await window.supabase
+        .from('reports')
+        .insert([{
+          mat_name: matName,
+          report_type: reportType,
+          description: description || null,
+          attachment_url: attachmentUrl,
+          status: 'pending'
+        }]);
+
+      if (error) throw error;
+
+      showToast("Zgłoszenie wysłane pomyślnie!", "success");
+      closeModal(reportFormModal);
+      
+      // Realtime samo odświeży listę! Użytkownik zobaczy nowy stan w ułamek sekundy (lub samo przełącza zakładkę).
+      if (currentReportTab !== 'pending') {
+         document.querySelector('.reports-tab[data-tab="pending"]')?.click();
+      }
+    } catch (err) {
+      console.error("Błąd zapisu zgłoszenia:", err);
+      showToast("Błąd przy zapisywaniu zgłoszenia.", "error");
+    } finally {
+      reportFormSubmit.innerText = origText;
+      reportFormSubmit.disabled = false;
+    }
+  });
+
+  // Szczegóły zgłoszenia
+  reportsList?.addEventListener('click', (e) => {
+    const card = e.target.closest('.report-card');
+    if (!card) return;
+
+    const id = card.dataset.reportId;
+    const report = allReports.find(r => r.id === id);
+    if (!report) return;
+
+    currentlyViewedReportId = id;
+
+    quickActionBtns.forEach(b => b.classList.remove('selected'));
+    reportResponseText.value = '';
+
+    const dateStr = new Date(report.created_at).toLocaleString('pl-PL');
+    
+    let html = `
+      <div class="report-detail-row">
+        <span class="report-detail-label">Mata</span>
+        <span class="report-detail-value">${escapeHtml(report.mat_name)}</span>
+      </div>
+      <div class="report-detail-row">
+        <span class="report-detail-label">Data zgłoszenia</span>
+        <span class="report-detail-value" style="font-weight: 500;">${dateStr}</span>
+      </div>
+      <div class="report-detail-row" style="border-bottom: none; padding-bottom: 0;">
+        <span class="report-detail-label">Typ zgłoszenia</span>
+      </div>
+      <div style="margin-bottom: 8px;">${getReportBadgeHtml(report.report_type)}</div>
+    `;
+
+    if (report.description) {
+      html += `
+        <div class="report-detail-label" style="margin-top: 8px; margin-bottom: 4px;">Opis dodatkowy</div>
+        <div class="report-detail-desc">${escapeHtml(report.description)}</div>
+      `;
+    }
+
+    if (report.attachment_url) {
+      html += `
+        <div class="report-detail-label" style="margin-top: 12px; margin-bottom: 4px;">Załączone zdjęcie</div>
+        <div class="report-detail-image">
+          <img src="${report.attachment_url}" alt="Załącznik">
+        </div>
+      `;
+    }
+
+    reportDetailBody.innerHTML = html;
+
+    if (report.status === 'resolved') {
+      reportDetailActions.style.display = 'none';
+      reportDetailResolved.style.display = 'block';
+      const resDate = report.resolved_at ? new Date(report.resolved_at).toLocaleString('pl-PL') : '';
+      let actionLabel = report.response_type;
+      if (actionLabel === 'repair') actionLabel = '🔧 Naprawa maty';
+      if (actionLabel === 'replace') actionLabel = '🔄 Zamiana maty';
+      if (actionLabel === 'add_mat') actionLabel = '➕ Dołożenie maty';
+      if (actionLabel === 'custom') actionLabel = 'Własna odpowiedź';
+
+      reportDetailResolved.innerHTML = `
+        <h4>Wykonana akcja: ${actionLabel}</h4>
+        ${report.response_text ? `<p><strong>Notatka:</strong> ${escapeHtml(report.response_text)}</p>` : ''}
+        <p style="font-size: 0.8rem; margin-top: 8px; color: var(--muted);">Sprawdzono: ${resDate}</p>
+      `;
+    } else {
+      reportDetailActions.style.display = 'block';
+      reportDetailResolved.style.display = 'none';
+      reportResolveBtn.disabled = true;
+    }
+
+    openModal(reportDetailModal);
+  });
+
+  reportDetailClose?.addEventListener('click', () => {
+    closeModal(reportDetailModal);
+  });
+
+  // Obsługa przycisków
+  quickActionBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('selected')) {
+        btn.classList.remove('selected');
+      } else {
+        quickActionBtns.forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      }
+      checkResolveBtnState();
+    });
+  });
+
+  reportResponseText?.addEventListener('input', () => {
+    checkResolveBtnState();
+  });
+
+  function checkResolveBtnState() {
+    const hasQuickAction = document.querySelector('.quick-action-btn.selected');
+    const hasText = reportResponseText.value.trim().length > 0;
+    reportResolveBtn.disabled = !(hasQuickAction || hasText);
+  }
+
+  reportResolveBtn?.addEventListener('click', async () => {
+    if (!currentlyViewedReportId) return;
+
+    const quickBtn = document.querySelector('.quick-action-btn.selected');
+    const responseType = quickBtn ? quickBtn.dataset.action : 'custom';
+    const responseText = reportResponseText.value.trim();
+
+    const origText = reportResolveBtn.innerText;
+    reportResolveBtn.innerText = 'Zapisywanie...';
+    reportResolveBtn.disabled = true;
+
+    try {
+      const { error } = await window.supabase
+        .from('reports')
+        .update({
+          status: 'resolved',
+          response_type: responseType,
+          response_text: responseText || null,
+          resolved_at: new Date().toISOString()
+        })
+        .eq('id', currentlyViewedReportId);
+
+      if (error) throw error;
+
+      showToast("Zgłoszenie rozwiązane!", "success");
+      closeModal(reportDetailModal);
+    } catch (err) {
+      console.error("Błąd oznaczania zgłoszenia:", err);
+      showToast("Nie udało się rozwiązać zgłoszenia.", "error");
+    } finally {
+      reportResolveBtn.innerText = origText;
+      reportResolveBtn.disabled = false;
+    }
+  });
 
   init();
 
