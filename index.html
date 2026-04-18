@@ -120,6 +120,21 @@
             </div>
           </button>
 
+          <button class="home-tile" data-navigate="reports">
+            <div class="home-tile-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                <line x1="9" y1="9" x2="15" y2="9"></line>
+                <line x1="12" y1="6" x2="12" y2="12"></line>
+              </svg>
+            </div>
+            <div class="home-tile-content">
+              <h2>Zgłoszenia</h2>
+              <p>Zgłaszanie problemów i śledzenie napraw</p>
+            </div>
+          </button>
+
           <button class="home-tile" data-navigate="washing" style="display: none;">
             <div class="home-tile-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -833,7 +848,127 @@
       </main>
     </div>
 
+    <!-- ==================== WIDOK: ZGŁOSZENIA ==================== -->
+    <div id="reportsView" class="view">
+      <main class="app-main">
+        <section class="card">
+          <div class="card-header">
+            <h2>📢 Zgłoszenia</h2>
+            <div class="mats-actions-buttons">
+              <button id="newReportBtn" class="btn-export-excel" style="background-color: var(--primary); color: var(--text);">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14m-7-7h14" />
+                </svg>
+                <span>Nowe zgłoszenie</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="reports-tabs">
+            <button class="reports-tab active" data-tab="pending">
+              Oczekujące <span id="reportsPendingCount" class="tab-badge">0</span>
+            </button>
+            <button class="reports-tab" data-tab="resolved">
+              Sprawdzone <span id="reportsResolvedCount" class="tab-badge">0</span>
+            </button>
+          </div>
+
+          <div class="search-box">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" id="reportsSearch" placeholder="Szukaj zgłoszenia..." class="search-input">
+          </div>
+        </section>
+
+        <section>
+          <div id="reportsList" class="mats-list"></div>
+          <div id="reportsLoadMoreSentinel" class="load-more-sentinel">
+            <div class="load-more-spinner"></div>
+            <span>Ładowanie...</span>
+          </div>
+        </section>
+      </main>
+    </div>
+
   </div>
+
+  <!-- ==================== MODAL: NOWE ZGŁOSZENIE ==================== -->
+  <div id="reportFormModal" class="modal">
+    <div class="modal-content large">
+      <h3>Nowe zgłoszenie</h3>
+      <div class="report-form">
+        <label class="form-label">Nazwa maty *</label>
+        <input type="text" id="reportMatName" class="form-input" placeholder="Wpisz nazwę maty...">
+
+        <label class="form-label">Powód zgłoszenia *</label>
+        <div class="report-type-selector">
+          <button class="report-type-btn active" data-type="missing_quantity">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12H4"/></svg>
+            Brak liczbowy
+          </button>
+          <button class="report-type-btn" data-type="damaged">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M5.07 19H19a2 2 0 0 0 1.75-2.96L13.04 4.06a2 2 0 0 0-3.5 0l-7.68 12a2 2 0 0 0 1.74 2.94z"/></svg>
+            Mata zniszczona
+          </button>
+        </div>
+
+        <label class="form-label">Dodatkowy opis (opcjonalnie)</label>
+        <textarea id="reportDescription" class="form-textarea" placeholder="Opisz problem szczegółowo..." rows="3"></textarea>
+
+        <label class="form-label">Załącznik / zdjęcie (opcjonalnie)</label>
+        <div class="report-file-upload">
+          <input type="file" id="reportFileInput" accept="image/*" capture="environment" style="display: none;">
+          <button id="reportFileBtnCamera" class="btn-secondary report-file-btn" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Zrób zdjęcie
+          </button>
+          <button id="reportFileBtnGallery" class="btn-secondary report-file-btn" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Z galerii
+          </button>
+        </div>
+        <div id="reportFilePreview" class="report-file-preview" style="display: none;">
+          <img id="reportPreviewImg" src="" alt="Podgląd">
+          <button id="reportFileRemove" class="btn-remove-file">&times;</button>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="reportFormCancel" class="btn-secondary">Anuluj</button>
+        <button id="reportFormSubmit" class="btn-primary">Wyślij zgłoszenie</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: SZCZEGÓŁY ZGŁOSZENIA ==================== -->
+  <div id="reportDetailModal" class="modal">
+    <div class="modal-content large">
+      <h3 id="reportDetailTitle">Szczegóły zgłoszenia</h3>
+      <div id="reportDetailBody" class="report-detail-body"></div>
+      
+      <div id="reportDetailActions" class="report-detail-actions">
+        <label class="form-label">Szybkie akcje</label>
+        <div class="quick-actions">
+          <button class="quick-action-btn" data-action="repair">🔧 Naprawa maty</button>
+          <button class="quick-action-btn" data-action="replace">🔄 Zamiana maty</button>
+          <button class="quick-action-btn" data-action="add_mat">➕ Dołożenie maty</button>
+        </div>
+        <label class="form-label" style="margin-top: 12px;">Lub wpisz własną odpowiedź</label>
+        <textarea id="reportResponseText" class="form-textarea" placeholder="Wpisz odpowiedź..." rows="2"></textarea>
+        <button id="reportResolveBtn" class="btn-primary" style="margin-top: 12px; width: 100%;">Oznacz jako sprawdzone</button>
+      </div>
+
+      <div id="reportDetailResolved" class="report-resolved-info" style="display: none;"></div>
+
+      <div class="modal-actions">
+        <button id="reportDetailClose" class="btn-secondary" style="flex: 1;">Zamknij</button>
+      </div>
+    </div>
+  </div>
+
   <footer class="app-footer">
     <span>Created by D. & M. Bocian</span>
   </footer>
