@@ -195,9 +195,41 @@ document.addEventListener("DOMContentLoaded", () => {
     if (adminAddMatSection) {
       adminAddMatSection.style.display = isAdmin ? 'block' : 'none';
     }
+    
+    // Pokaż przycisk kopiowania zapasów u admina w Liście Mat Logo
+    const adminImportFromInventoryBtn = document.getElementById('adminImportFromInventoryBtn');
+    if (adminImportFromInventoryBtn) {
+      adminImportFromInventoryBtn.style.display = isAdmin ? 'flex' : 'none';
+    }
   }
 
   // ==================== EVENT LISTENERY ADMINA ====================
+
+  const adminImportFromInventoryBtn = document.getElementById('adminImportFromInventoryBtn');
+  const matsLoadFromInventoryModal = document.getElementById('matsLoadFromInventoryModal');
+  const matsLoadFromInventoryCancel = document.getElementById('matsLoadFromInventoryCancel');
+  const matsLoadFromInventoryConfirm = document.getElementById('matsLoadFromInventoryConfirm');
+
+  // Funkcjonalność modala Importowania Inwentaryzacji (dla Admina)
+  adminImportFromInventoryBtn?.addEventListener('click', () => {
+    openModal(matsLoadFromInventoryModal);
+  });
+  
+  matsLoadFromInventoryCancel?.addEventListener('click', () => {
+    closeModal(matsLoadFromInventoryModal);
+  });
+  
+  matsLoadFromInventoryConfirm?.addEventListener('click', async () => {
+    matsLoadFromInventoryConfirm.disabled = true;
+    const origText = matsLoadFromInventoryConfirm.innerText;
+    matsLoadFromInventoryConfirm.innerText = 'Trwa nadpisywanie...';
+    
+    await executeLoadToLogoMatsFromInventory();
+    
+    matsLoadFromInventoryConfirm.innerText = origText;
+    matsLoadFromInventoryConfirm.disabled = false;
+    closeModal(matsLoadFromInventoryModal);
+  });
 
   adminBtn.addEventListener('click', openAdminModal);
 
