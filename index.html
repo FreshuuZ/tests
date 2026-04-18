@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pl">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -11,6 +12,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
+
 <body class="light">
 
   <div class="background-aurora"></div>
@@ -18,8 +20,9 @@
   <header class="app-header">
     <div class="header-left">
       <button id="backBtn" class="back-btn" style="display: none;" aria-label="Powrót">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m15 18-6-6 6-6"/>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6" />
         </svg>
       </button>
       <div class="brand">
@@ -27,25 +30,54 @@
         <span class="brand-title" id="headerTitle">Elis ServiceHub</span>
       </div>
     </div>
+    <button id="adminBtn" class="admin-btn" aria-label="Panel administratora">
+      <svg class="admin-icon-locked" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+      <svg class="admin-icon-unlocked" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+      </svg>
+    </button>
     <button id="themeToggle" class="theme-toggle" aria-label="Zmień motyw">
-      <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-      <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+      </svg>
+      <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5" />
+        <line x1="12" y1="1" x2="12" y2="3" />
+        <line x1="12" y1="21" x2="12" y2="23" />
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+        <line x1="1" y1="12" x2="3" y2="12" />
+        <line x1="21" y1="12" x2="23" y2="12" />
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+      </svg>
     </button>
   </header>
 
   <div id="app">
-    
-    <!-- WIDOK: CENTRUM GŁÓWNE -->
+
+    <!-- ==================== WIDOK: CENTRUM GŁÓWNE ==================== -->
     <div id="homeView" class="view active">
       <main class="home-main">
         <h1 class="home-welcome">Witaj w Systemie Elis ServiceHub</h1>
         <p class="home-subtitle">Wybierz moduł, z którego chcesz skorzystać</p>
-        
+
         <div class="home-grid">
-          <button class="home-tile" data-navigate="panel">
+          <button class="home-tile" data-navigate="panel" style="display: none;">
             <div class="home-tile-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                </path>
                 <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                 <line x1="12" y1="22.08" x2="12" y2="12"></line>
               </svg>
@@ -58,7 +90,8 @@
 
           <button class="home-tile" data-navigate="mats">
             <div class="home-tile-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
                 <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -68,34 +101,79 @@
             </div>
             <div class="home-tile-content">
               <h2>Lista Mat Logo</h2>
-              <p>Inwentaryzacja i zarządzanie matami</p>
+              <p>Zarządzanie matami</p>
             </div>
           </button>
 
-          <button class="home-tile" data-navigate="washing">
+          <button class="home-tile" data-navigate="inventory">
             <div class="home-tile-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M12 6v6l4 2"></path>
+              <!-- Checklist icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"></path>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
               </svg>
             </div>
             <div class="home-tile-content">
-              <h2>Pranie Mat Logo</h2>
-              <p>Zarządzanie praniem mat</p>
+              <h2>Inwentaryzacja Mat</h2>
+              <p>Weryfikacja i oznaczanie stanów mat</p>
+            </div>
+          </button>
+
+          <button class="home-tile" data-navigate="washing" style="display: none;">
+            <div class="home-tile-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="12" cy="13" r="5"></circle>
+                <circle cx="8" cy="6" r="0.5" fill="currentColor"></circle>
+                <circle cx="11" cy="6" r="0.5" fill="currentColor"></circle>
+              </svg>
+            </div>
+            <div class="home-tile-content">
+              <h2>Maty w Praniu</h2>
+              <p>Aktywne prania i zarządzanie kolejką</p>
+            </div>
+          </button>
+
+          <button class="home-tile" data-navigate="archive" style="display: none;">
+            <div class="home-tile-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="21 8 21 21 3 21 3 8"></polyline>
+                <rect x="1" y="3" width="22" height="5"></rect>
+                <line x1="10" y1="12" x2="14" y2="12"></line>
+              </svg>
+            </div>
+            <div class="home-tile-content">
+              <h2>Archiwum</h2>
+              <p>Historia i raporty</p>
             </div>
           </button>
         </div>
       </main>
     </div>
 
-    <!-- WIDOK: PANEL TRAS -->
+    <!-- ==================== WIDOK: PANEL TRAS ==================== -->
     <div id="panelView" class="view">
       <main class="app-main">
         <section id="routeCard" class="card">
           <h2>🚚 Wybierz trasę</h2>
           <div id="routeSelectWrapper" class="custom-select-wrapper"></div>
-        </section>
 
+          <!-- 🆕 LICZNIK PALET POD TRASĄ -->
+          <div id="palletCountSection" class="pallet-count-section" style="display: none;">
+            <label class="pallet-count-label">📦 Liczba palet w trasie</label>
+            <div class="pallet-count-controls">
+              <button id="palletCountDec" class="btn-secondary" aria-label="Zmniejsz">−</button>
+              <div class="pallet-count-display">
+                <span id="palletCountValue">0</span>
+                <span class="pallet-count-unit">palet</span>
+              </div>
+              <button id="palletCountInc" class="btn-secondary" aria-label="Zwiększ">+</button>
+            </div>
+          </div>
+        </section>
         <!-- Karta wyboru akcji -->
         <section id="actionCard" class="card form-section-disabled">
           <h2>🔀 Wybierz typ operacji</h2>
@@ -182,10 +260,14 @@
                 <div class="multi-alt-input-row">
                   <input type="text" id="multiAltClientInput" placeholder="Klient (opcjonalnie)">
                   <div class="qty-row mini">
-                    <input type="number" id="multiAltQtyInput" value="1" min="1" max="100" inputmode="numeric" placeholder="Ilość">
+                    <input type="number" id="multiAltQtyInput" value="1" min="1" max="100" inputmode="numeric"
+                      placeholder="Ilość">
                   </div>
                   <button id="addTempAltBtn" class="btn-add-alt" aria-label="Dodaj ten zamiennik do listy">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 5v14m-7-7h14" />
+                    </svg>
                   </button>
                 </div>
               </div>
@@ -200,14 +282,15 @@
                   <h3>Kreator podziału mat</h3>
                   <p>Wybierz matę i podaj całkowitą ilość, którą chcesz rozdzielić między klientów</p>
                 </div>
-                
+
                 <div id="distributeMatSelectWrapper" class="custom-select-wrapper"></div>
-                
+
                 <div class="input-row">
                   <label class="distribute-label">Całkowita ilość do rozdzielenia:</label>
-                  <input type="number" id="distributeTotalQty" min="1" max="100" value="1" inputmode="numeric" placeholder="Np. 10">
+                  <input type="number" id="distributeTotalQty" min="1" max="100" value="1" inputmode="numeric"
+                    placeholder="Np. 10">
                 </div>
-                
+
                 <button id="startDistributeBtn" class="btn-primary" style="width: 100%; margin-top: 16px;">
                   <span style="font-size: 20px; margin-right: 8px;">▶️</span> Rozpocznij podział
                 </button>
@@ -227,7 +310,7 @@
                     <span class="distribute-unit">szt.</span>
                   </div>
                 </div>
-                
+
                 <!-- Progress bar -->
                 <div class="distribute-progress-container">
                   <div class="distribute-progress-bar">
@@ -249,10 +332,14 @@
 
                 <!-- Formularz dodawania klienta -->
                 <div class="distribute-add-section">
-                  <h4 style="margin: 0 0 12px; font-size: 14px; color: var(--text); text-transform: none; letter-spacing: 0;">Dodaj klienta do podziału:</h4>
+                  <h4
+                    style="margin: 0 0 12px; font-size: 14px; color: var(--text); text-transform: none; letter-spacing: 0;">
+                    Dodaj klienta do podziału:</h4>
                   <div class="distribute-form-grid">
-                    <input type="text" id="distributeClientInput" placeholder="Nazwa klienta" class="distribute-client-input">
-                    <input type="number" id="distributeClientQty" min="1" value="1" inputmode="numeric" placeholder="Ilość" class="distribute-qty-input">
+                    <input type="text" id="distributeClientInput" placeholder="Nazwa klienta"
+                      class="distribute-client-input">
+                    <input type="number" id="distributeClientQty" min="1" value="1" inputmode="numeric"
+                      placeholder="Ilość" class="distribute-qty-input">
                     <button id="addDistributeClientBtn" class="btn-add-client">
                       <span style="font-size: 18px;">+</span> Dodaj
                     </button>
@@ -261,7 +348,9 @@
 
                 <!-- Lista klientów z podziałem -->
                 <div class="distribute-list-section">
-                  <h4 style="margin: 0 0 12px; font-size: 14px; color: var(--text); text-transform: none; letter-spacing: 0;">Aktualny podział:</h4>
+                  <h4
+                    style="margin: 0 0 12px; font-size: 14px; color: var(--text); text-transform: none; letter-spacing: 0;">
+                    Aktualny podział:</h4>
                   <div id="distributeClientsList" class="distribute-clients-list">
                     <div class="distribute-empty-state">
                       <span style="font-size: 32px; opacity: 0.3;">📋</span>
@@ -302,11 +391,14 @@
               </div>
             </div>
           </div>
-          
+
           <!-- PRZYCISK DODAJ - NA ZEWNĄTRZ KONTENERÓW! -->
           <button id="addBtn" class="btn-primary" disabled>
             <span class="btn-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14m-7-7h14" />
+              </svg>
             </span>
             <span class="btn-label">Dodaj do listy zmian</span>
           </button>
@@ -323,7 +415,10 @@
           </div>
           <button id="addAdditionBtn" class="btn-primary" disabled>
             <span class="btn-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14m-7-7h14" />
+              </svg>
             </span>
             <span class="btn-label">Dodaj dołożenie</span>
           </button>
@@ -336,7 +431,7 @@
       </main>
     </div>
 
-    <!-- WIDOK: LISTA MAT LOGO -->
+    <!-- ==================== WIDOK: LISTA MAT LOGO ==================== -->
     <div id="matsView" class="view">
       <main class="app-main">
         <section class="card">
@@ -344,14 +439,16 @@
             <h2>🔍 Wyszukiwarka Mat Logo</h2>
             <div class="mats-actions-buttons">
               <button id="exportExcelBtn" class="btn-export-excel" aria-label="Eksportuj do Excel">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                   <polyline points="14 2 14 8 20 8"></polyline>
                 </svg>
                 <span>Excel</span>
               </button>
               <button id="printMatsBtn" class="btn-print-mats" aria-label="Drukuj listę mat">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="6 9 6 2 18 2 18 9"></polyline>
                   <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
                   <rect x="6" y="14" width="12" height="8"></rect>
@@ -361,11 +458,22 @@
             </div>
           </div>
           <div class="search-box">
-            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8"></circle>
               <path d="m21 21-4.35-4.35"></path>
             </svg>
-            <input type="text" id="matsSearch" placeholder="Wpisz nazwę, lokalizację lub rozmiar..." class="search-input">
+            <input type="text" id="matsSearch" placeholder="Wpisz nazwę, lokalizację lub rozmiar..."
+              class="search-input">
+          </div>
+          <div id="adminAddMatSection" class="admin-add-mat-section" style="display: none;">
+            <button id="addNewMatBtn" class="btn-add-mat">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5">
+                <path d="M12 5v14m-7-7h14" />
+              </svg>
+              <span>Dodaj nową matę</span>
+            </button>
           </div>
           <div class="mats-stats">
             <span id="matsCount">Załadowano: 0 mat</span>
@@ -374,21 +482,36 @@
         </section>
 
         <section>
-          <h2 class="section-title">📦 Lista Mat (inwentaryzacja)</h2>
+          <h2 class="section-title">📦 Lista Mat Logo (inwentaryzacja)</h2>
           <div id="matsList" class="mats-list"></div>
+          <div id="matsLoadMoreSentinel" class="load-more-sentinel">
+            <div class="load-more-spinner"></div>
+            <span>Ładowanie...</span>
+          </div>
         </section>
       </main>
     </div>
 
-    <!-- WIDOK: PRANIE MAT LOGO -->
+    <!-- ==================== WIDOK: MATY W PRANIU ==================== -->
     <div id="washingView" class="view">
       <main class="app-main">
-        
+
         <!-- Formularz dodawania -->
         <section class="card">
           <h2>🧼 Dodaj matę do prania</h2>
           <div class="washing-form">
             <div id="washingMatSelectWrapper" class="custom-select-wrapper"></div>
+
+            <!-- Wybór ilości (pokazuje się gdy quantity > 1) -->
+            <div id="washingQuantitySelector" class="washing-quantity-selector" style="display: none;">
+              <label class="washing-qty-label">Ile sztuk dać do prania?</label>
+              <div class="qty-row">
+                <button id="washingQtyDec" class="btn-secondary" aria-label="Zmniejsz">−</button>
+                <input type="number" id="washingQty" min="1" max="1" value="1" inputmode="numeric">
+                <button id="washingQtyInc" class="btn-secondary" aria-label="Zwiększ">+</button>
+              </div>
+            </div>
+
             <button id="addToWashingBtn" class="btn-primary" disabled>
               Wrzuć do prania
             </button>
@@ -400,12 +523,315 @@
 
         <!-- Aktywne prania -->
         <section>
-          <h2 class="section-title">🌀 Aktywnie w praniu</h2>
+          <div class="card-header" style="margin-bottom: 16px;">
+            <h2 class="section-title" style="margin: 0;">🌀 Aktywnie w praniu</h2>
+          </div>
+
+          <!-- WYSZUKIWARKA -->
+          <div class="card" style="padding: 16px; margin-bottom: 16px;">
+            <div class="search-box">
+              <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+              <input type="text" id="washingSearch" placeholder="Szukaj w praniu..." class="search-input">
+            </div>
+            <div class="washing-stats">
+              <span id="washingCount">W praniu: 0 mat</span>
+              <span id="washingFiltered" style="display:none;"></span>
+            </div>
+          </div>
+
           <div id="activeWashingList" class="list"></div>
         </section>
 
       </main>
     </div>
+
+    <!-- ==================== ARCHIWUM - PRZEDSIONEK ==================== -->
+    <div id="archiveView" class="view">
+      <div class="app-main">
+        <div class="home-welcome">Archiwum</div>
+        <div class="home-subtitle">Wybierz typ archiwum do przeglądania</div>
+
+        <div class="home-grid" style="max-width: 900px;">
+          <!-- Kafelek 1: Archiwum Zamienników -->
+          <div class="home-tile" data-navigate="archive-replacements">
+            <div class="home-tile-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="12" y1="18" x2="12" y2="12" />
+                <line x1="9" y1="15" x2="15" y2="15" />
+              </svg>
+            </div>
+            <div class="home-tile-content">
+              <h2>Archiwum Zamienników</h2>
+              <p>Historia wydrukowanych tras i zmian mat</p>
+            </div>
+          </div>
+
+          <!-- Kafelek 2: Archiwum Prań -->
+          <div class="home-tile" data-navigate="archive-washing">
+            <div class="home-tile-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
+            </div>
+            <div class="home-tile-content">
+              <h2>Archiwum Prań Mat Logo</h2>
+              <p>Historia wypranych mat logo</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== ARCHIWUM ZAMIENNIKÓW ==================== -->
+    <div id="archiveReplacementsView" class="view">
+      <div class="app-main">
+        <div class="card">
+          <div class="card-header">
+            <h2>🗂️ Archiwum Zamienników</h2>
+            <div class="archive-controls">
+              <button class="btn-secondary reminder-btn" id="setReplacementsReminderBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" style="width:18px;height:18px;margin-right:6px;">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                Ustaw przypomnienie
+              </button>
+            </div>
+          </div>
+
+          <!-- Statystyki -->
+          <div class="stats-row" style="margin-bottom: 24px;">
+            <div class="stat-card">
+              <div class="stat-value" id="archiveReplacementsCount">0</div>
+              <div class="stat-label">Tras w archiwum</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="archiveReplacementsPallets">0</div>
+              <div class="stat-label">Suma palet</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="archiveReplacementsChanges">0</div>
+              <div class="stat-label">Wszystkich zmian</div>
+            </div>
+          </div>
+
+          <!-- Wyszukiwarka -->
+          <div class="search-box">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="search" class="search-input" id="archiveReplacementsSearch"
+              placeholder="Szukaj po trasie lub macie...">
+          </div>
+
+          <!-- 🔥 POPRAWKA: Wrapper z licznikiem i przyciskami -->
+          <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 20px;">
+            <div class="mats-stats" style="margin: 0;">
+              <span id="archiveReplacementsTotal">Ładowanie...</span>
+              <span id="archiveReplacementsFiltered" style="display: none;"></span>
+            </div>
+
+            <!-- 🔥 PRZYCISKI EKSPORTU -->
+            <div class="export-buttons">
+              <button class="btn-export-excel" id="exportReplacementsExcel">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
+                </svg>
+                Eksportuj do Excel
+              </button>
+              <button class="btn-print-mats" id="printReplacementsArchive">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2">
+                  <polyline points="6 9 6 2 18 2 18 9" />
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                  <rect x="6" y="14" width="12" height="8" />
+                </svg>
+                Drukuj raport
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista tras -->
+        <div id="archiveReplacementsList"></div>
+      </div>
+    </div>
+
+    <!-- ==================== ARCHIWUM PRAŃ MAT ==================== -->
+    <div id="archiveWashingView" class="view">
+      <div class="app-main">
+        <div class="card">
+          <div class="card-header">
+            <h2>🧼 Archiwum Prań Mat Logo</h2>
+            <div class="archive-controls">
+              <button class="btn-secondary reminder-btn" id="setReminderBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" style="width:18px;height:18px;margin-right:6px;">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                Ustaw przypomnienie
+              </button>
+            </div>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-value" id="archiveTotalEntries">0</div>
+              <div class="stat-label">Wpisów</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="archiveTotalMats">0</div>
+              <div class="stat-label">Mat wypranych</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="archiveDateRange">-</div>
+              <div class="stat-label">Zakres dat</div>
+            </div>
+          </div>
+
+          <div class="archive-date-filters">
+            <div class="date-filter-group">
+              <label for="archiveDateFrom">Data od:</label>
+              <input type="date" id="archiveDateFrom" class="date-input">
+            </div>
+            <div class="date-filter-group">
+              <label for="archiveDateTo">Data do:</label>
+              <input type="date" id="archiveDateTo" class="date-input">
+            </div>
+            <button class="btn-secondary" id="archiveDateReset" style="align-self: flex-end; min-height: 44px;">
+              Resetuj filtry
+            </button>
+          </div>
+
+          <div class="search-box">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="search" class="search-input" id="archiveSearch" placeholder="Szukaj mat w archiwum...">
+          </div>
+
+          <!-- 🔥 POPRAWKA: Wrapper z licznikiem i przyciskami (USUNIĘTY DUPLIKAT) -->
+          <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 20px;">
+            <div class="mats-stats" style="margin: 0;">
+              <span id="archiveCount">0 wpisów</span>
+              <span id="archiveFiltered" style="display: none;"></span>
+            </div>
+
+            <div class="export-buttons">
+              <button class="btn-export-excel" id="exportArchiveExcel">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
+                </svg>
+                Eksportuj do Excel
+              </button>
+              <button class="btn-print-mats" id="printArchive">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2">
+                  <polyline points="6 9 6 2 18 2 18 9" />
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                  <rect x="6" y="14" width="12" height="8" />
+                </svg>
+                Drukuj archiwum
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="archiveList"></div>
+      </div>
+    </div>
+
+  </div>
+
+    <!-- ==================== WIDOK: INWENTARYZACJA MAT ==================== -->
+    <div id="inventoryView" class="view">
+      <main class="app-main">
+        <section class="card">
+          <div class="card-header">
+            <h2>📦 Inwentaryzacja Mat</h2>
+            <div class="mats-actions-buttons">
+              <button id="loadInventoryBtn" class="btn-export-excel" aria-label="Wczytaj maty z listy mat logo" style="background-color: var(--primary); color: var(--text);">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Wczytaj Listę</span>
+              </button>
+              <button id="clearInventoryBtn" class="btn-print-mats" aria-label="Wyczyść oznaczone maty" style="background-color: #ff4b4b; color: white;" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18"></path>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                <span>Wyczyść Oznaczenia</span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="stats-row" style="margin-bottom: 24px;">
+            <div class="stat-card">
+              <div class="stat-value" id="inventoryTotal">0</div>
+              <div class="stat-label">Wszystkich</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="inventoryOk" style="color: #00d26a;">0</div>
+              <div class="stat-label">Zgodne</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="inventoryNotOk" style="color: #ff4b4b;">0</div>
+              <div class="stat-label">Brak zgodności</div>
+            </div>
+          </div>
+
+          <div class="search-box">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" id="inventorySearch" placeholder="Wpisz nazwę, lokalizację lub rozmiar..."
+              class="search-input">
+          </div>
+        </section>
+
+        <section>
+          <div id="inventoryList" class="mats-list"></div>
+          <div id="inventoryLoadMoreSentinel" class="load-more-sentinel">
+            <div class="load-more-spinner"></div>
+            <span>Ładowanie...</span>
+          </div>
+        </section>
+      </main>
+    </div>
+
+  </div>
 
   <footer class="app-footer">
     <span>Created by D. & M. Bocian</span>
@@ -413,7 +839,7 @@
 
   <div id="toast" class="toast"></div>
 
-  <!-- Modale Panel Tras -->
+  <!-- ==================== MODALE PANEL TRAS ==================== -->
   <div id="editSimpleModal" class="modal">
     <div class="modal-content">
       <h3>Edytuj zmianę</h3>
@@ -431,28 +857,31 @@
       <h3>Edytuj zmianę zaawansowaną</h3>
       <div id="editAdvChangeDetails"></div>
       <div class="advanced-section">
-          <h4>Ilość mat bazowych</h4>
-          <div class="qty-row">
-            <button id="editAdvQtyBaseDec" class="btn-secondary">−</button>
-            <input type="number" id="editAdvQtyBaseInput" min="1" max="100" value="1" inputmode="numeric">
-            <button id="editAdvQtyBaseInc" class="btn-secondary">+</button>
-          </div>
+        <h4>Ilość mat bazowych</h4>
+        <div class="qty-row">
+          <button id="editAdvQtyBaseDec" class="btn-secondary">−</button>
+          <input type="number" id="editAdvQtyBaseInput" min="1" max="100" value="1" inputmode="numeric">
+          <button id="editAdvQtyBaseInc" class="btn-secondary">+</button>
+        </div>
       </div>
       <div class="advanced-section">
-          <h4>Kreator listy zamienników</h4>
-          <div class="multi-alt-builder">
-            <div id="editMultiAltSelectWrapper" class="custom-select-wrapper"></div>
-            <div class="multi-alt-input-row">
-              <input type="text" id="editMultiAltClientInput" placeholder="Klient (opcjonalnie)">
-              <div class="qty-row mini">
-                <input type="number" id="editMultiAltQtyInput" value="1" min="1" max="100" inputmode="numeric">
-              </div>
-              <button id="editAddTempAltBtn" class="btn-add-alt" aria-label="Dodaj zamiennik">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
-              </button>
+        <h4>Kreator listy zamienników</h4>
+        <div class="multi-alt-builder">
+          <div id="editMultiAltSelectWrapper" class="custom-select-wrapper"></div>
+          <div class="multi-alt-input-row">
+            <input type="text" id="editMultiAltClientInput" placeholder="Klient (opcjonalnie)">
+            <div class="qty-row mini">
+              <input type="number" id="editMultiAltQtyInput" value="1" min="1" max="100" inputmode="numeric">
             </div>
+            <button id="editAddTempAltBtn" class="btn-add-alt" aria-label="Dodaj zamiennik">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14m-7-7h14" />
+              </svg>
+            </button>
           </div>
-          <div id="editTempMultiAltList" class="edit-temp-multi-alt-list"></div>
+        </div>
+        <div id="editTempMultiAltList" class="edit-temp-multi-alt-list"></div>
       </div>
       <div class="modal-actions">
         <button id="editAdvancedCancel" class="btn-secondary">Anuluj</button>
@@ -474,7 +903,7 @@
 
   <div id="deleteGroupModal" class="modal">
     <div class="modal-content">
-      <h3>Potwierdzenie usunięcia</h3> 
+      <h3>Potwierdzenie usunięcia</h3>
       <p id="deleteGroupModalText"></p>
       <div class="modal-actions">
         <button id="deleteGroupCancel" class="btn-secondary">Anuluj</button>
@@ -483,11 +912,11 @@
     </div>
   </div>
 
-  <!-- Modal Edycji Dołożenia -->
   <div id="editAdditionModal" class="modal">
     <div class="modal-content">
       <h3>Edytuj dołożenie</h3>
-      <p id="editAdditionName" style="text-align: center; font-weight: 600; margin-bottom: 16px; color: var(--primary);"></p>
+      <p id="editAdditionName"
+        style="text-align: center; font-weight: 600; margin-bottom: 16px; color: var(--primary);"></p>
       <div class="qty-row">
         <button id="editAdditionQtyDec" class="btn-secondary">−</button>
         <input type="number" id="editAdditionQtyInput" min="1" max="100" inputmode="numeric">
@@ -500,24 +929,332 @@
     </div>
   </div>
 
+  <!-- ==================== MODALE PRANIA ==================== -->
+  <div id="editWashingModal" class="modal">
+    <div class="modal-content">
+      <h3>Edytuj ilość w praniu</h3>
+      <p id="editWashingMatName"
+        style="text-align: center; font-weight: 600; margin-bottom: 16px; color: var(--primary);"></p>
+      <div class="qty-row" style="margin-top: 16px;">
+        <button id="editWashingQtyDec" class="btn-secondary">−</button>
+        <input type="number" id="editWashingQtyInput" min="1" max="100" inputmode="numeric">
+        <button id="editWashingQtyInc" class="btn-secondary">+</button>
+      </div>
+      <div class="modal-actions">
+        <button id="editWashingCancel" class="btn-secondary">Anuluj</button>
+        <button id="editWashingSave" class="btn-primary">Zapisz</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="deleteWashingModal" class="modal">
+    <div class="modal-content">
+      <h3>Usuń z prania</h3>
+      <p id="deleteWashingText"></p>
+      <div class="modal-actions">
+        <button id="deleteWashingCancel" class="btn-secondary">Anuluj</button>
+        <button id="deleteWashingConfirm" class="btn-danger">Usuń</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL ADMINA ==================== -->
+  <div id="adminModal" class="modal">
+    <div class="modal-content admin-modal-content">
+      <div class="admin-modal-header">
+        <div class="admin-modal-icon" id="adminModalIcon">🔒</div>
+        <h3 id="adminModalTitle">Panel Administratora</h3>
+      </div>
+
+      <!-- Stan: Niezalogowany -->
+      <div id="adminLoginSection">
+        <p class="admin-modal-desc">Wprowadź PIN aby uzyskać dostęp do funkcji administratora</p>
+        <div class="pin-input-wrapper">
+          <input type="password" id="adminPinInput" maxlength="5" placeholder="• • • • •" inputmode="numeric"
+            autocomplete="off">
+          <button type="button" id="togglePinVisibility" class="pin-toggle-btn" aria-label="Pokaż/ukryj PIN">
+            <svg class="eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            <svg class="eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <path
+                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+              <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+          </button>
+        </div>
+        <div id="pinError" class="pin-error" style="display: none;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
+          <span>Nieprawidłowy PIN</span>
+        </div>
+        <div class="modal-actions">
+          <button id="adminLoginCancel" class="btn-secondary">Anuluj</button>
+          <button id="adminLoginSubmit" class="btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5" style="width:18px;height:18px;margin-right:6px;">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+              <polyline points="10 17 15 12 10 7" />
+              <line x1="15" y1="12" x2="3" y2="12" />
+            </svg>
+            Zaloguj
+          </button>
+        </div>
+      </div>
+
+      <!-- Stan: Zalogowany -->
+      <div id="adminLoggedSection" style="display: none;">
+        <div class="admin-status-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+          <span>Zalogowany jako Administrator</span>
+        </div>
+        <p class="admin-logged-desc">Masz pełny dostęp do edycji, usuwania i dodawania mat.</p>
+        <div class="modal-actions">
+          <button id="adminCloseBtn" class="btn-secondary">Zamknij</button>
+          <button id="adminLogoutBtn" class="btn-danger">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5" style="width:18px;height:18px;margin-right:6px;">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Wyloguj
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL DODAWANIA MATY ==================== -->
+  <div id="addMatModal" class="modal">
+    <div class="modal-content mat-form-modal">
+      <h3>➕ Dodaj nową matę</h3>
+
+      <div class="mat-form-grid">
+        <div class="mat-form-group full-width">
+          <label for="addMatName">Nazwa maty *</label>
+          <input type="text" id="addMatName" placeholder="np. Nowa Firma Logo" required>
+        </div>
+
+        <div class="mat-form-group">
+          <label for="addMatNumber">Numer maty</label>
+          <input type="text" id="addMatNumber" placeholder="np. 12345">
+        </div>
+
+        <div class="mat-form-group full-width">
+          <label>Typ lokalizacji</label>
+          <div class="location-type-toggle">
+            <label class="location-type-option">
+              <input type="radio" name="addLocationType" value="rack" checked>
+              <span class="location-type-content">
+                <span class="location-type-icon">🗄️</span>
+                <span class="location-type-label">Regał</span>
+              </span>
+            </label>
+            <label class="location-type-option">
+              <input type="radio" name="addLocationType" value="pallet">
+              <span class="location-type-content">
+                <span class="location-type-icon">📦</span>
+                <span class="location-type-label">Paleta</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Pola dla Regału -->
+        <div id="addRackFields" class="rack-fields">
+          <div class="mat-form-group">
+            <label for="addMatRack">Regał</label>
+            <input type="text" id="addMatRack" placeholder="np. 2 lub A">
+          </div>
+          <div class="mat-form-group">
+            <label for="addMatRow">Rząd</label>
+            <input type="text" id="addMatRow" placeholder="np. 1">
+          </div>
+          <div class="mat-form-group">
+            <label for="addMatPipe">Rura</label>
+            <input type="text" id="addMatPipe" placeholder="np. 7,,12 lub 3,4,5">
+          </div>
+        </div>
+
+        <!-- Pole dla Palety -->
+        <div id="addPalletFields" class="pallet-fields" style="display: none;">
+          <div class="mat-form-group full-width">
+            <label for="addMatPallet">Nazwa/numer palety</label>
+            <input type="text" id="addMatPallet" placeholder="np. PALETA-A lub Paleta przy wejściu">
+          </div>
+        </div>
+
+        <div class="mat-form-group">
+          <label for="addMatSize">Rozmiar (opcjonalnie)</label>
+          <input type="text" id="addMatSize" placeholder="np. 150x85">
+        </div>
+
+        <div class="mat-form-group">
+          <label for="addMatQty">Ilość *</label>
+          <input type="number" id="addMatQty" min="0" value="1" required>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="addMatCancel" class="btn-secondary">Anuluj</button>
+        <button id="addMatSubmit" class="btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.5" style="width:18px;height:18px;margin-right:6px;">
+            <path d="M12 5v14m-7-7h14" />
+          </svg>
+          Dodaj matę
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL EDYCJI MATY ==================== -->
+  <div id="editMatModal" class="modal">
+    <div class="modal-content mat-form-modal">
+      <h3>✏️ Edytuj matę</h3>
+      <input type="hidden" id="editMatId">
+
+      <div class="mat-form-grid">
+        <div class="mat-form-group full-width">
+          <label for="editMatName">Nazwa maty *</label>
+          <input type="text" id="editMatName" placeholder="Nazwa maty" required>
+        </div>
+
+        <div class="mat-form-group">
+          <label for="editMatNumber">Numer maty</label>
+          <input type="text" id="editMatNumber" placeholder="np. MAT-001 lub 12345">
+        </div>
+
+        <div class="mat-form-group full-width">
+          <label>Typ lokalizacji</label>
+          <div class="location-type-toggle">
+            <label class="location-type-option">
+              <input type="radio" name="editLocationType" value="rack" checked>
+              <span class="location-type-content">
+                <span class="location-type-icon">🗄️</span>
+                <span class="location-type-label">Regał</span>
+              </span>
+            </label>
+            <label class="location-type-option">
+              <input type="radio" name="editLocationType" value="pallet">
+              <span class="location-type-content">
+                <span class="location-type-icon">📦</span>
+                <span class="location-type-label">Paleta</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Pola dla Regału -->
+        <div id="editRackFields" class="rack-fields">
+          <div class="mat-form-group">
+            <label for="editMatRack">Regał</label>
+            <input type="text" id="editMatRack" placeholder="np. 2 lub A">
+          </div>
+          <div class="mat-form-group">
+            <label for="editMatRow">Rząd</label>
+            <input type="text" id="editMatRow" placeholder="np. 1">
+          </div>
+          <div class="mat-form-group">
+            <label for="editMatPipe">Rura</label>
+            <input type="text" id="editMatPipe" placeholder="np. 7,,12 lub 3,4,5">
+          </div>
+        </div>
+
+        <!-- Pole dla Palety -->
+        <div id="editPalletFields" class="pallet-fields" style="display: none;">
+          <div class="mat-form-group full-width">
+            <label for="editMatPallet">Nazwa/numer palety</label>
+            <input type="text" id="editMatPallet" placeholder="np. PALETA-A">
+          </div>
+        </div>
+
+        <div class="mat-form-group">
+          <label for="editMatSize">Rozmiar (opcjonalnie)</label>
+          <input type="text" id="editMatSize" placeholder="np. 150x85">
+        </div>
+
+        <div class="mat-form-group">
+          <label for="editMatQty">Ilość *</label>
+          <input type="number" id="editMatQty" min="0" value="1" required>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="editMatCancel" class="btn-secondary">Anuluj</button>
+        <button id="editMatSubmit" class="btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            style="width:18px;height:18px;margin-right:6px;">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
+          </svg>
+          Zapisz zmiany
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL USUWANIA MATY ==================== -->
+  <div id="deleteMatModal" class="modal">
+    <div class="modal-content">
+      <h3>🗑️ Usuń matę</h3>
+      <input type="hidden" id="deleteMatId">
+      <p id="deleteMatText" style="text-align: center; line-height: 1.6;">
+        Czy na pewno chcesz usunąć tę matę?<br>
+        <strong id="deleteMatName"></strong>
+      </p>
+      <div class="delete-warning">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+        <span>Ta operacja jest nieodwracalna!</span>
+      </div>
+      <div class="modal-actions">
+        <button id="deleteMatCancel" class="btn-secondary">Anuluj</button>
+        <button id="deleteMatConfirm" class="btn-danger">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.5" style="width:18px;height:18px;margin-right:6px;">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          </svg>
+          Usuń matę
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="print-container">
     <div id="print-output"></div>
   </div>
-  
+
   <div id="select-portal"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-  <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <!-- Konfiguracja Supabase -->
+
   <script>
     const SUPABASE_URL = 'https://sdvlxgizrypjyssccupy.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdmx4Z2l6cnlwanlzc2NjdXB5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2NzA4MjYsImV4cCI6MjA3NzI0NjgyNn0._St2quW9Kc0Shpd-naSp2o01HUxSoSy6k4S29ORe8yM';
     window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   </script>
-  
-  <!-- <script src="logoData.js"></script> -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="script.js"></script>
 </body>
+
 </html>
