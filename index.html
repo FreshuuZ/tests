@@ -451,9 +451,20 @@
       <main class="app-main">
         <section class="card">
           <div class="card-header">
-            <h2>🔍 Wyszukiwarka Mat Logo</h2>
+            <h2 id="matsListTitle">Lista Mat</h2>
             <div class="mats-actions-buttons">
-              <button id="exportExcelBtn" class="btn-export-excel" aria-label="Eksportuj do Excel">
+              <!-- Przycisk kopiowania inwentaryzacji (widoczny tylko dla admina) -->
+              <button id="adminImportFromInventoryBtn" class="btn-import-excel" style="display: none; background-color: var(--primary); color: white;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                  <polyline points="16 6 12 2 8 6"></polyline>
+                  <line x1="12" y1="2" x2="12" y2="15"></line>
+                </svg>
+                <span>Nadpisz główną z inwentaryzacji</span>
+              </button>
+              
+              <button id="importExcelBtn" class="btn-import-excel" aria-label="Eksportuj do Excel">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -914,11 +925,15 @@
         <div class="report-type-selector">
           <button class="report-type-btn active" data-type="missing_quantity">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12H4"/></svg>
-            Brak liczbowy
+            Brak
+          </button>
+          <button class="report-type-btn" data-type="over_quantity">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Nad stan
           </button>
           <button class="report-type-btn" data-type="damaged">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M5.07 19H19a2 2 0 0 0 1.75-2.96L13.04 4.06a2 2 0 0 0-3.5 0l-7.68 12a2 2 0 0 0 1.74 2.94z"/></svg>
-            Mata zniszczona
+            Zniszczona
           </button>
         </div>
 
@@ -958,9 +973,10 @@
       <div id="reportDetailActions" class="report-detail-actions">
         <label class="form-label">Szybkie akcje</label>
         <div class="quick-actions">
-          <button class="quick-action-btn" data-action="repair">🔧 Naprawa maty</button>
-          <button class="quick-action-btn" data-action="replace">🔄 Zamiana maty</button>
-          <button class="quick-action-btn" data-action="add_mat">➕ Dołożenie maty</button>
+          <button class="quick-action-btn" data-action="repair">🔧 Naprawa</button>
+          <button class="quick-action-btn" data-action="utilize">🗑️ Utylizacja</button>
+          <button class="quick-action-btn" data-action="replace_set">🔄 Wymiana</button>
+          <button class="quick-action-btn" data-action="over_quantity_ok">✅ Nad stan</button>
         </div>
         <label class="form-label" style="margin-top: 12px;">Lub wpisz własną odpowiedź</label>
         <textarea id="reportResponseText" class="form-textarea" placeholder="Wpisz odpowiedź..." rows="2"></textarea>
@@ -970,6 +986,7 @@
       <div id="reportDetailResolved" class="report-resolved-info" style="display: none;"></div>
 
       <div class="modal-actions">
+        <button id="reportDetailDelete" class="btn-secondary" style="flex: 1; background: #ff4b4b; color: white;">Usuń trwale</button>
         <button id="reportDetailClose" class="btn-secondary" style="flex: 1;">Zamknij</button>
       </div>
     </div>
@@ -994,6 +1011,17 @@
   <div id="toast" class="toast"></div>
 
   <!-- ==================== MODALE INWENTARYZACJI ==================== -->
+  <div id="matsLoadFromInventoryModal" class="modal">
+    <div class="modal-content">
+      <h3>Wczytaj dany inwentaryzacji do bazy głównej</h3>
+      <p>Czy na pewno chcesz przenieść obecne ilości z inwentaryzacji i NADPISAĆ NIMI listę na zakładce Mat Logo? Ta operacja usunie stare ilości mat i zastąpi je tymi z inwentaryzacji.</p>
+      <div class="modal-actions">
+        <button id="matsLoadFromInventoryCancel" class="btn-secondary">Anuluj</button>
+        <button id="matsLoadFromInventoryConfirm" class="btn-primary" style="background: var(--primary);">Tak, nadpisz bazę główną</button>
+      </div>
+    </div>
+  </div>
+
   <div id="inventoryLoadModal" class="modal">
     <div class="modal-content">
       <h3>Wczytaj listę mat</h3>
