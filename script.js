@@ -1847,34 +1847,31 @@ document.addEventListener("DOMContentLoaded", () => {
       currentInventoryPage = 0;
       isLoadingMoreInventory = false;
 
-      // Oblicz statystyki na CAŁYM zbiorze (nie tylko pierwszej stronie)
-      let okElements = 0;
-      let notOkElements = 0;
-      let hasAnyMarked = false;
-      filteredInventoryCache.forEach(mat => {
-        if (mat.status === 'ok') okElements++;
-        if (mat.status === 'not_ok') notOkElements++;
-        if (mat.status === 'ok' || mat.status === 'not_ok') hasAnyMarked = true;
-      });
+      // Odłącz stary observer
+      if (inventoryObserver) {
+        inventoryObserver.disconnect();
+        inventoryObserver = null;
+      }
 
-      inventoryTotal.textContent = filteredInventoryCache.length;
-      inventoryOk.textContent = okElements;
-      inventoryNotOk.textContent = notOkElements;
-      clearInventoryBtn.disabled = !hasAnyMarked;
+      // Przelicz statystyki (używa allInventoryMats, nie filteredInventoryCache)
+      updateInventoryStats();
 
+      // Wyczyść listę
       inventoryList.innerHTML = '';
+      hideInventoryLoadMore();
 
       if (filteredInventoryCache.length === 0) {
         inventoryList.innerHTML = `<div class="empty-state"><div class="empty-state-text">Brak danych inwentaryzacji. Kliknij "Wczytaj Listę", aby zacząć.</div></div>`;
-        hideInventoryLoadMore();
         return;
       }
 
       // Renderuj pierwszą partię
       renderInventoryChunk();
 
-      // Ustaw observer dla lazy loading
-      setupInventoryObserver();
+      // Ustaw observer dla lazy loading dopiero po renderze pierwszej partii
+      if (filteredInventoryCache.length > INV_PER_PAGE) {
+        setTimeout(() => setupInventoryObserver(), 100);
+      }
   }
 
   function renderInventoryChunk() {
@@ -1957,7 +1954,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }, {
       root: null,
-      rootMargin: '200px',
+      rootMargin: '300px',
       threshold: 0
     });
 
@@ -1972,12 +1969,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     isLoadingMoreInventory = true;
-    showInventoryLoadMore();
 
     requestAnimationFrame(() => {
       currentInventoryPage++;
       renderInventoryChunk();
-      isLoadingMoreInventory = false;
+      // Małe opóźnienie żeby przeglądarka zdążyła zrenderować DOM
+      // zanim pozwolimy na kolejną partię
+      setTimeout(() => {
+        isLoadingMoreInventory = false;
+      }, 50);
     });
   }
 
