@@ -1676,7 +1676,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const { data, error } = await window.supabase
         .from('inventory_mats')
         .select('*')
-        .order('name', { ascending: true });
+        .order('name', { ascending: true })
+        .order('id', { ascending: true });
 
       if (error) throw error;
       allInventoryMats = data || [];
@@ -5358,11 +5359,25 @@ document.addEventListener("DOMContentLoaded", () => {
         event: '*', 
         schema: 'public', 
         table: 'inventory_mats' 
-      }, async (payload) => {
-        console.log('✨ Zmiana w inwentaryzacji!', payload);
-        if (currentView === 'inventory') {
-          const newMats = await fetchInventoryMats();
-          renderInventory(newMats, document.getElementById('inventorySearch')?.value || '');
+      }, (payload) => {
+        console.log('✨ Zmiana w inwentaryzacji na żywo!', payload);
+        if (payload.eventType === 'UPDATE') {
+          const index = allInventoryMats.findIndex(mat => mat.id === payload.new.id);
+          if (index !== -1) {
+             allInventoryMats[index] = payload.new;
+             if (currentView === 'inventory') {
+                 const itemEl = inventoryList.querySelector(`[data-inv-id="${payload.new.id}"]`);
+                 if (itemEl) {
+                     itemEl.className = 'inventory-item mat-item status-' + payload.new.status;
+                     const qtyInput = itemEl.querySelector('.inv-qty-val');
+                     if (qtyInput) qtyInput.value = payload.new.custom_qty !== null ? payload.new.custom_qty : payload.new.original_qty;
+                 }
+                 if (typeof updateInventoryStats === 'function') updateInventoryStats();
+             }
+          }
+        } else if (payload.eventType === 'INSERT') {
+          allInventoryMats.push(payload.new);
+          if (currentView === 'inventory' && typeof updateInventoryStats === 'function') updateInventoryStats();
         }
       })
       .subscribe();
@@ -5403,6 +5418,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const reportsResolvedCount = document.getElementById('reportsResolvedCount');
   const newReportBtn = document.getElementById('newReportBtn');
   const reportsTabs = document.querySelectorAll('.reports-tab');
+  const reportsDeleteOldContainer = document.getElementById('reportsDeleteOldContainer');
+  const reportsDeleteOldBtn = document.getElementById('reportsDeleteOldBtn');
 
   const reportFormModal = document.getElementById('reportFormModal');
   const reportFormCancel = document.getElementById('reportFormCancel');
@@ -5618,12 +5635,51 @@ document.addEventListener("DOMContentLoaded", () => {
       reportsTabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       currentReportTab = tab.dataset.tab;
+      
+      if (currentReportTab === 'resolved') {
+        reportsDeleteOldContainer.style.display = 'flex';
+      } else {
+        reportsDeleteOldContainer.style.display = 'none';
+      }
+      
       renderReports();
     });
   });
 
   reportsSearch?.addEventListener('input', (e) => {
     renderReports(e.target.value);
+  });
+
+  // Usuwanie starych zgłoszeń (> 24h)
+  reportsDeleteOldBtn?.addEventListener('click', async () => {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    
+    if (!confirm('Czy na pewno chcesz usunąć wszystkie zgłoszenia STARSZE niż 24h? Ta operacja jest nieodwracalna.')) return;
+    
+    const origText = reportsDeleteOldBtn.innerText;
+    reportsDeleteOldBtn.innerText = 'Usuwanie...';
+    reportsDeleteOldBtn.disabled = true;
+    
+    try {
+      const { error } = await window.supabase
+        .from('reports')
+        .delete()
+        .eq('status', 'resolved')
+        .lt('resolved_at', twentyFourHoursAgo);
+        
+      if (error) throw error;
+      showToast('Usunięto stare zgłoszenia!', 'success');
+      await fetchReports();
+    } catch (err) {
+      console.error("Błąd usuwania starych zgłoszeń:", err);
+      showToast("Nie udało się usunąć starych zgłoszeń.", "error");
+    } finally {
+      reportsDeleteOldBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        Usuń starsze niż 24h
+      `;
+      reportsDeleteOldBtn.disabled = false;
+    }
   });
 
   // Nowe zgłoszenie - obsługa UI
