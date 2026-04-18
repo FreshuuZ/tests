@@ -2372,16 +2372,18 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="mat-info">
         <div class="mat-name">
           ${escapeHtml(mat.name)}
-          ${matNumberBadge}
         </div>
         <div class="mat-details">
           ${mat.location ? `<div class="mat-detail-item"><strong>${formatLocation(mat.location)}</strong></div>` : ''}
           ${mat.size ? `<div class="mat-detail-item">📏 ${escapeHtml(mat.size)}</div>` : ''}
         </div>
       </div>
-      <div class="mat-actions">
-        ${adminActionsHtml}
-        <div class="mat-qty-badge">${mat.quantity}</div>
+      <div class="mat-actions" style="align-items: center; justify-content: space-between;">
+        ${matNumberBadge}
+        <div style="display:flex; align-items:center; gap:8px;">
+          ${adminActionsHtml}
+          <div class="mat-qty-badge">${mat.quantity}</div>
+        </div>
       </div>
     `;
     
