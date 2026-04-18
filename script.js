@@ -1654,6 +1654,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const loadInventoryBtn = document.getElementById('loadInventoryBtn');
   const clearInventoryBtn = document.getElementById('clearInventoryBtn');
 
+  // Modale inwentaryzacji
+  const inventoryLoadModal = document.getElementById('inventoryLoadModal');
+  const inventoryLoadCancel = document.getElementById('inventoryLoadCancel');
+  const inventoryLoadConfirm = document.getElementById('inventoryLoadConfirm');
+  const inventoryClearModal = document.getElementById('inventoryClearModal');
+  const inventoryClearCancel = document.getElementById('inventoryClearCancel');
+  const inventoryClearConfirm = document.getElementById('inventoryClearConfirm');
+
   async function fetchInventoryMats() {
     inventoryList.innerHTML = `<div class="empty-state"><div class="empty-state-text">Pobieranie danych inwentaryzacji...</div></div>`;
     try {
@@ -1663,86 +1671,94 @@ document.addEventListener("DOMContentLoaded", () => {
         .order('name', { ascending: true });
 
       if (error) throw error;
-      allInventoryMats = data;
-      return data;
+      allInventoryMats = data || [];
+      return allInventoryMats;
     } catch (error) {
       console.error("Błąd pobierania mat z inventory_mats:", error);
-      showToast("Błąd pobierania inwentaryzacji.", "error");
-      inventoryList.innerHTML = `<div class="empty-state error"><div class="empty-state-text">Nie udało się pobrać danych.</div></div>`;
+      showToast("Błąd pobierania inwentaryzacji: " + (error.message || error), "error");
+      inventoryList.innerHTML = `<div class="empty-state error"><div class="empty-state-text">Nie udało się pobrać danych. Sprawdź czy tabela inventory_mats istnieje w Supabase i ma włączone RLS policies.</div></div>`;
       return [];
     }
   }
 
-  async function loadFromLogoMats() {
-    if (confirm("Czy na pewno chcesz wczytać listę mat z głównej bazy? Zastąpi to obecną inwentaryzację nowymi pozycjami i zresetuje wszystkie oznaczenia!")) {
-      try {
-        showToast("Rozpoczęto kopiowanie danych...", "success");
-        // Najpierw pobierz oryginalne maty
-        const { data: originalMats, error: readError } = await window.supabase
-          .from('logo_mats')
-          .select('name, mat_number, location, size, quantity');
-          
-        if (readError) throw readError;
+  async function executeLoadFromLogoMats() {
+    try {
+      showToast("Rozpoczęto kopiowanie danych...", "success");
+      // Najpierw pobierz oryginalne maty
+      const { data: originalMats, error: readError } = await window.supabase
+        .from('logo_mats')
+        .select('name, mat_number, location, size, quantity');
+        
+      if (readError) throw readError;
 
-        // Oznacz maty domyślnie statusem 'unchecked'
-        const newInventory = originalMats.map(mat => ({
-          ...mat,
-          status: 'unchecked'
-        }));
+      if (!originalMats || originalMats.length === 0) {
+        showToast("Brak mat w głównej bazie do skopiowania.", "error");
+        return;
+      }
 
-        // Usuń stare wpisy. 
-        const { error: deleteError } = await window.supabase
-          .from('inventory_mats')
-          .delete()
-          .not('id', 'is', null);
+      // Oznacz maty domyślnie statusem 'unchecked'
+      const newInventory = originalMats.map(mat => ({
+        name: mat.name || null,
+        mat_number: mat.mat_number || null,
+        location: mat.location || null,
+        size: mat.size || null,
+        quantity: mat.quantity || 0,
+        status: 'unchecked'
+      }));
 
-        if (deleteError) throw deleteError;
+      // Usuń stare wpisy
+      const { error: deleteError } = await window.supabase
+        .from('inventory_mats')
+        .delete()
+        .not('id', 'is', null);
 
-        // Wstaw nowe
+      if (deleteError) throw deleteError;
+
+      // Wstaw nowe — w partiach po 500 aby uniknąć limitu
+      const batchSize = 500;
+      for (let i = 0; i < newInventory.length; i += batchSize) {
+        const batch = newInventory.slice(i, i + batchSize);
         const { error: insertError } = await window.supabase
           .from('inventory_mats')
-          .insert(newInventory);
-
+          .insert(batch);
         if (insertError) throw insertError;
-
-        showToast("Zaktualizowano tabelę inwentaryzacji! Odświeżam widok...", "success");
-        const freshMats = await fetchInventoryMats();
-        renderInventory(freshMats, inventorySearch.value);
-        
-      } catch (error) {
-        console.error("Błąd kopiowania danych z logo_mats do inventory_mats:", error);
-        showToast("Nie udało się skopiować danych. Spróbuj ponownie.", "error");
       }
+
+      showToast(`Skopiowano ${newInventory.length} mat do inwentaryzacji!`, "success");
+      const freshMats = await fetchInventoryMats();
+      renderInventory(freshMats, inventorySearch.value);
+      
+    } catch (error) {
+      console.error("Błąd kopiowania danych z logo_mats do inventory_mats:", error);
+      showToast("Nie udało się skopiować danych: " + (error.message || error), "error");
     }
   }
 
-  async function clearInventoryStatus() {
-    if (confirm("Czy na pewno chcesz wyczyścić wszystkie oznaczone (zgodne/niezgodne) maty wracając je do standardowego wyglądu?")) {
-      try {
-        const { error } = await window.supabase
-          .from('inventory_mats')
-          .update({ status: 'unchecked' })
-          .in('status', ['ok', 'not_ok']);
-          
-        if (error) throw error;
+  async function executeClearInventoryStatus() {
+    try {
+      const { error } = await window.supabase
+        .from('inventory_mats')
+        .update({ status: 'unchecked' })
+        .in('status', ['ok', 'not_ok']);
         
-        showToast("Oznaczenia zostały wyczyszczone.", "success");
-        const freshMats = await fetchInventoryMats();
-        renderInventory(freshMats, inventorySearch.value);
-      } catch(error) {
-        console.error("Błąd czyszczenia oznaczeń:", error);
-        showToast("Próba wyczyszczenia zakończona blędem.", "error");
-      }
+      if (error) throw error;
+      
+      showToast("Oznaczenia zostały wyczyszczone.", "success");
+      const freshMats = await fetchInventoryMats();
+      renderInventory(freshMats, inventorySearch.value);
+    } catch(error) {
+      console.error("Błąd czyszczenia oznaczeń:", error);
+      showToast("Próba wyczyszczenia zakończona błędem: " + (error.message || error), "error");
     }
   }
 
   async function updateInventoryStatus(id, newStatus) {
     try {
-      // Optymistyczna dystrybucja stanu
+      // Optymistyczna aktualizacja stanu
       const index = allInventoryMats.findIndex(mat => mat.id === id);
       if (index !== -1) {
         allInventoryMats[index].status = newStatus;
-        renderInventory(allInventoryMats, inventorySearch?.value || ''); // Re-render from cache
+        renderInventory(allInventoryMats, inventorySearch?.value || '');
       }
 
       const { error } = await window.supabase
@@ -1784,7 +1800,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         filtered.forEach(mat => {
           const div = document.createElement('div');
-          // Add status classes for coloring
           div.className = `mat-item inventory-item status-${mat.status || 'unchecked'}`;
           
           if (mat.status === 'ok') okElements++;
@@ -1859,12 +1874,32 @@ document.addEventListener("DOMContentLoaded", () => {
     renderInventory(allInventoryMats, value);
   });
   
+  // Przycisk "Wczytaj Listę" — otwiera modal potwierdzenia
   loadInventoryBtn?.addEventListener('click', () => {
-    loadFromLogoMats();
+    openModal(inventoryLoadModal);
   });
 
+  inventoryLoadCancel?.addEventListener('click', () => {
+    closeModal(inventoryLoadModal);
+  });
+
+  inventoryLoadConfirm?.addEventListener('click', () => {
+    closeModal(inventoryLoadModal);
+    executeLoadFromLogoMats();
+  });
+
+  // Przycisk "Wyczyść Oznaczenia" — otwiera modal potwierdzenia
   clearInventoryBtn?.addEventListener('click', () => {
-    clearInventoryStatus();
+    openModal(inventoryClearModal);
+  });
+
+  inventoryClearCancel?.addEventListener('click', () => {
+    closeModal(inventoryClearModal);
+  });
+
+  inventoryClearConfirm?.addEventListener('click', () => {
+    closeModal(inventoryClearModal);
+    executeClearInventoryStatus();
   });
   
   // ==================== LISTA MAT LOGO (SUPABASE) ====================
