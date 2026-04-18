@@ -1773,100 +1773,247 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function updateInventoryQuantity(id, newQuantity) {
+    if (newQuantity < 0) return;
+    try {
+      // Optymistyczna aktualizacja ilości w lokalnym widoku
+      const index = allInventoryMats.findIndex(mat => mat.id === id);
+      if (index !== -1) {
+        allInventoryMats[index].quantity = newQuantity;
+        // Pomiń pełny render, aby nie gubić focusa z inputu, zrobiliśmy to w listenerach.
+      }
+
+      const { error } = await window.supabase
+        .from('inventory_mats')
+        .update({ quantity: newQuantity })
+        .eq('id', id);
+
+      if (error) throw error;
+    } catch (error) {
+        console.error("Błąd aktualizacji ilości maty:", error);
+        showToast("Nie udało się zapisać zmienionej ilości.", "error");
+    }
+  }
+
+  // Paginacja inwentaryzacji
+  const INV_PER_PAGE = 30;
+  let filteredInventoryCache = [];
+  let currentInventoryPage = 0;
+  let isLoadingMoreInventory = false;
+  let inventoryObserver = null;
+
   function renderInventory(matsData, filter = '') {
       const search = filter.toLowerCase().trim();
-      let filtered = matsData;
+      filteredInventoryCache = matsData;
 
       if (search) {
-        filtered = matsData.filter(mat => {
+        filteredInventoryCache = matsData.filter(mat => {
           return (mat.name?.toLowerCase() || '').includes(search) ||
                 (mat.location?.toLowerCase() || '').includes(search) ||
                 (mat.size?.toLowerCase() || '').includes(search) ||
                 (mat.mat_number?.toLowerCase() || '').includes(search);
         });
       }
-      
-      const totalElements = filtered.length;
+
+      // Reset paginacji
+      currentInventoryPage = 0;
+      isLoadingMoreInventory = false;
+
+      // Oblicz statystyki na CAŁYM zbiorze (nie tylko pierwszej stronie)
       let okElements = 0;
       let notOkElements = 0;
       let hasAnyMarked = false;
+      filteredInventoryCache.forEach(mat => {
+        if (mat.status === 'ok') okElements++;
+        if (mat.status === 'not_ok') notOkElements++;
+        if (mat.status === 'ok' || mat.status === 'not_ok') hasAnyMarked = true;
+      });
+
+      inventoryTotal.textContent = filteredInventoryCache.length;
+      inventoryOk.textContent = okElements;
+      inventoryNotOk.textContent = notOkElements;
+      clearInventoryBtn.disabled = !hasAnyMarked;
 
       inventoryList.innerHTML = '';
 
-      if (filtered.length === 0) {
+      if (filteredInventoryCache.length === 0) {
         inventoryList.innerHTML = `<div class="empty-state"><div class="empty-state-text">Brak danych inwentaryzacji. Kliknij "Wczytaj Listę", aby zacząć.</div></div>`;
-      } else {
-        const fragment = document.createDocumentFragment();
-
-        filtered.forEach(mat => {
-          const div = document.createElement('div');
-          div.className = `mat-item inventory-item status-${mat.status || 'unchecked'}`;
-          
-          if (mat.status === 'ok') okElements++;
-          if (mat.status === 'not_ok') notOkElements++;
-          if (mat.status === 'ok' || mat.status === 'not_ok') hasAnyMarked = true;
-
-          const matNumberBadge = mat.mat_number ? `<span class="mat-number-badge">#${mat.mat_number}</span>` : '';
-          
-          div.innerHTML = `
-            <div class="mat-info">
-              <div class="mat-name">
-                ${escapeHtml(mat.name)}
-                ${matNumberBadge}
-              </div>
-              <div class="mat-details">
-                ${mat.location ? `<div class="mat-detail-item"><strong>${formatLocation(mat.location)}</strong></div>` : ''}
-                ${mat.size ? `<div class="mat-detail-item">📏 ${escapeHtml(mat.size)}</div>` : ''}
-              </div>
-            </div>
-            <div class="mat-actions">
-              <div class="inventory-actions">
-                <button class="btn-inventory-ok" data-id="${mat.id}" aria-label="Zgodne">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </button>
-                <button class="btn-inventory-not-ok" data-id="${mat.id}" aria-label="Niezgodne">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              </div>
-              <div class="mat-qty-badge">${mat.quantity}</div>
-            </div>
-          `;
-          fragment.appendChild(div);
-        });
-        inventoryList.appendChild(fragment);
+        hideInventoryLoadMore();
+        return;
       }
 
-      inventoryTotal.textContent = totalElements;
-      inventoryOk.textContent = okElements;
-      inventoryNotOk.textContent = notOkElements;
-      
-      clearInventoryBtn.disabled = !hasAnyMarked;
-      
-      // Podepnij nasłuchiwacze dla świeżo wyrenderowanych ok/not-ok kliknięć
-      const okButtons = inventoryList.querySelectorAll('.btn-inventory-ok');
-      const notOkButtons = inventoryList.querySelectorAll('.btn-inventory-not-ok');
+      // Renderuj pierwszą partię
+      renderInventoryChunk();
 
-      okButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-           e.stopPropagation();
-           const id = btn.dataset.id;
-           updateInventoryStatus(id, 'ok');
-        });
-      });
-
-      notOkButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-           e.stopPropagation();
-           const id = btn.dataset.id;
-           updateInventoryStatus(id, 'not_ok');
-        });
-      });
+      // Ustaw observer dla lazy loading
+      setupInventoryObserver();
   }
+
+  function renderInventoryChunk() {
+    const start = currentInventoryPage * INV_PER_PAGE;
+    const end = start + INV_PER_PAGE;
+    const matsToRender = filteredInventoryCache.slice(start, end);
+
+    if (matsToRender.length === 0) {
+      hideInventoryLoadMore();
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+
+    matsToRender.forEach(mat => {
+      const div = document.createElement('div');
+      div.className = `mat-item inventory-item status-${mat.status || 'unchecked'}`;
+      div.dataset.invId = mat.id;
+
+      const matNumberBadge = mat.mat_number ? `<span class="mat-number-badge">#${mat.mat_number}</span>` : '';
+
+      div.innerHTML = `
+        <div class="mat-info">
+          <div class="mat-name">
+            ${escapeHtml(mat.name)}
+            ${matNumberBadge}
+          </div>
+          <div class="mat-details">
+            ${mat.location ? `<div class="mat-detail-item"><strong>${formatLocation(mat.location)}</strong></div>` : ''}
+            ${mat.size ? `<div class="mat-detail-item">📏 ${escapeHtml(mat.size)}</div>` : ''}
+          </div>
+        </div>
+        <div class="mat-actions">
+          <div class="inventory-actions">
+            <button class="btn-inventory-ok" data-id="${mat.id}" aria-label="Zgodność">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </button>
+            <button class="btn-inventory-not-ok" data-id="${mat.id}" aria-label="Brak zgodności">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="inventory-qty-control">
+            <button class="inv-qty-dec" data-id="${mat.id}">−</button>
+            <input type="number" class="inv-qty-input" data-id="${mat.id}" value="${mat.quantity}" min="0">
+            <button class="inv-qty-inc" data-id="${mat.id}">+</button>
+          </div>
+        </div>
+      `;
+      fragment.appendChild(div);
+    });
+
+    inventoryList.appendChild(fragment);
+
+    // Sprawdź czy są kolejne strony
+    if (end < filteredInventoryCache.length) {
+      showInventoryLoadMore();
+    } else {
+      hideInventoryLoadMore();
+    }
+  }
+
+  function setupInventoryObserver() {
+    const sentinel = document.getElementById('inventoryLoadMoreSentinel');
+    if (!sentinel) return;
+
+    if (inventoryObserver) {
+      inventoryObserver.disconnect();
+    }
+
+    inventoryObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !isLoadingMoreInventory) {
+          loadMoreInventory();
+        }
+      });
+    }, {
+      root: null,
+      rootMargin: '200px',
+      threshold: 0
+    });
+
+    inventoryObserver.observe(sentinel);
+  }
+
+  function loadMoreInventory() {
+    const nextStart = (currentInventoryPage + 1) * INV_PER_PAGE;
+    if (nextStart >= filteredInventoryCache.length) {
+      hideInventoryLoadMore();
+      return;
+    }
+
+    isLoadingMoreInventory = true;
+    showInventoryLoadMore();
+
+    requestAnimationFrame(() => {
+      currentInventoryPage++;
+      renderInventoryChunk();
+      isLoadingMoreInventory = false;
+    });
+  }
+
+  function showInventoryLoadMore() {
+    const sentinel = document.getElementById('inventoryLoadMoreSentinel');
+    if (sentinel) sentinel.style.display = 'flex';
+  }
+
+  function hideInventoryLoadMore() {
+    const sentinel = document.getElementById('inventoryLoadMoreSentinel');
+    if (sentinel) sentinel.style.display = 'none';
+  }
+
+  // Event delegation — jeden listener na cały kontener zamiast setek na poszczególnych przyciskach
+  inventoryList.addEventListener('click', (e) => {
+    const okBtn = e.target.closest('.btn-inventory-ok');
+    if (okBtn) {
+      e.stopPropagation();
+      updateInventoryStatus(okBtn.dataset.id, 'ok');
+      return;
+    }
+
+    const notOkBtn = e.target.closest('.btn-inventory-not-ok');
+    if (notOkBtn) {
+      e.stopPropagation();
+      updateInventoryStatus(notOkBtn.dataset.id, 'not_ok');
+      return;
+    }
+
+    const decBtn = e.target.closest('.inv-qty-dec');
+    if (decBtn) {
+      e.stopPropagation();
+      const id = decBtn.dataset.id;
+      const input = decBtn.nextElementSibling;
+      let val = parseInt(input.value) || 0;
+      if (val > 0) {
+        val--;
+        input.value = val;
+        updateInventoryQuantity(id, val);
+      }
+      return;
+    }
+
+    const incBtn = e.target.closest('.inv-qty-inc');
+    if (incBtn) {
+      e.stopPropagation();
+      const id = incBtn.dataset.id;
+      const input = incBtn.previousElementSibling;
+      let val = parseInt(input.value) || 0;
+      val++;
+      input.value = val;
+      updateInventoryQuantity(id, val);
+      return;
+    }
+  });
+
+  inventoryList.addEventListener('change', (e) => {
+    if (e.target.classList.contains('inv-qty-input')) {
+      const id = e.target.dataset.id;
+      let val = parseInt(e.target.value) || 0;
+      if (val < 0) { val = 0; e.target.value = 0; }
+      updateInventoryQuantity(id, val);
+    }
+  });
 
   inventorySearch?.addEventListener('input', (e) => {
     const value = e.target.value;
