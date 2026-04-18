@@ -5510,16 +5510,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Funkcje narzędziowe zgłoszeń
   function getReportTypeLabel(type) {
-    if (type === 'missing_quantity') return 'Brak liczbowy';
     if (type === 'damaged') return 'Mata zniszczona';
     if (type === 'over_quantity') return 'Nad stan liczbowy';
     return type;
   }
 
   function getReportBadgeHtml(type) {
-    if (type === 'missing_quantity') {
-      return `<div class="report-card-badge report-badge-missing">Brak liczbowy</div>`;
-    }
     if (type === 'damaged') {
       return `<div class="report-card-badge report-badge-damaged">Zniszczona</div>`;
     }
@@ -5727,6 +5723,8 @@ document.addEventListener("DOMContentLoaded", () => {
     closeModal(reportsDeleteOldModal);
   });
 
+  let selectedReportType = 'over_quantity';
+
   reportsDeleteOldConfirm?.addEventListener('click', async () => {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     
@@ -5766,7 +5764,7 @@ document.addEventListener("DOMContentLoaded", () => {
     reportPreviewImg.src = '';
     
     reportTypeBtns.forEach(b => b.classList.remove('active'));
-    document.querySelector('.report-type-btn[data-type="missing_quantity"]')?.classList.add('active');
+    document.querySelector('.report-type-btn[data-type="over_quantity"]')?.classList.add('active');
 
     openModal(reportFormModal);
   });
@@ -5851,7 +5849,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const typeBtn = document.querySelector('.report-type-btn.active');
-    const reportType = typeBtn ? typeBtn.dataset.type : 'missing_quantity';
+    const reportType = typeBtn ? typeBtn.dataset.type : 'over_quantity';
     const description = reportDescription.value.trim();
     
     // Blokada guzika
