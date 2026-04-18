@@ -1747,13 +1747,30 @@ document.addEventListener("DOMContentLoaded", () => {
         status: 'unchecked'
       }));
 
-      // Usuń stare wpisy
-      const { error: deleteError } = await window.supabase
-        .from('inventory_mats')
-        .delete()
-        .not('id', 'is', null);
-
-      if (deleteError) throw deleteError;
+      // Usuń stare wpisy krok po kroku, omijając limity PostgREST (max 1000 wierszy)
+      let wipingInventory = true;
+      while (wipingInventory) {
+        const { data: rowsToDelete, error: selErr } = await window.supabase
+          .from('inventory_mats')
+          .select('id')
+          .limit(1000);
+        
+        if (selErr) throw selErr;
+        
+        if (!rowsToDelete || rowsToDelete.length === 0) {
+          wipingInventory = false;
+          break;
+        }
+        
+        const ids = rowsToDelete.map(r => r.id);
+        const { error: delErr } = await window.supabase
+          .from('inventory_mats')
+          .delete()
+          .in('id', ids);
+          
+        if (delErr) throw delErr;
+        if (rowsToDelete.length < 1000) wipingInventory = false;
+      }
 
       // Wstaw nowe — w partiach po 500 aby uniknąć limitu
       const batchSize = 500;
@@ -1887,13 +1904,30 @@ document.addEventListener("DOMContentLoaded", () => {
         quantity: mat.quantity
       }));
 
-      // Usuń stare wpisy z logo_mats
-      const { error: deleteError } = await window.supabase
-        .from('logo_mats')
-        .delete()
-        .not('id', 'is', null);
-
-      if (deleteError) throw deleteError;
+      // Usuń stare wpisy z logo_mats (pętlą)
+      let wipingLogoMats = true;
+      while (wipingLogoMats) {
+        const { data: rowsToDelete, error: selErr } = await window.supabase
+          .from('logo_mats')
+          .select('id')
+          .limit(1000);
+          
+        if (selErr) throw selErr;
+        
+        if (!rowsToDelete || rowsToDelete.length === 0) {
+          wipingLogoMats = false;
+          break;
+        }
+        
+        const ids = rowsToDelete.map(r => r.id);
+        const { error: delErr } = await window.supabase
+          .from('logo_mats')
+          .delete()
+          .in('id', ids);
+          
+        if (delErr) throw delErr;
+        if (rowsToDelete.length < 1000) wipingLogoMats = false;
+      }
 
       // Wstaw nowe inwentaryzacje z powrotem
       const batchSize = 500;
