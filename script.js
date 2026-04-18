@@ -1754,12 +1754,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function updateInventoryStatus(id, newStatus) {
     try {
-      // Optymistyczna aktualizacja stanu
+      // Optymistyczna aktualizacja — zmień dane w cache
       const index = allInventoryMats.findIndex(mat => mat.id === id);
       if (index !== -1) {
         allInventoryMats[index].status = newStatus;
-        renderInventory(allInventoryMats, inventorySearch?.value || '');
       }
+
+      // In-place aktualizacja DOM — NIE re-renderuj całej listy
+      const itemEl = inventoryList.querySelector(`[data-inv-id="${id}"]`);
+      if (itemEl) {
+        // Usuń stare klasy statusu
+        itemEl.classList.remove('status-unchecked', 'status-ok', 'status-not_ok');
+        // Dodaj nową klasę
+        itemEl.classList.add(`status-${newStatus}`);
+      }
+
+      // Przelicz statystyki
+      updateInventoryStats();
 
       const { error } = await window.supabase
         .from('inventory_mats')
@@ -1771,6 +1782,23 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Błąd aktualizacji statusu maty:", error);
         showToast("Wystąpił błąd w oznaczaniu.", "error");
     }
+  }
+
+  // Przeliczenie statystyk bez przebudowy całej listy
+  const inventoryChecked = document.getElementById('inventoryChecked');
+
+  function updateInventoryStats() {
+    let ok = 0, notOk = 0, total = allInventoryMats.length;
+    allInventoryMats.forEach(mat => {
+      if (mat.status === 'ok') ok++;
+      if (mat.status === 'not_ok') notOk++;
+    });
+    const checked = ok + notOk;
+    inventoryTotal.textContent = total;
+    inventoryOk.textContent = ok;
+    inventoryNotOk.textContent = notOk;
+    inventoryChecked.textContent = `${checked} / ${total}`;
+    clearInventoryBtn.disabled = checked === 0;
   }
 
   async function updateInventoryQuantity(id, newQuantity) {
