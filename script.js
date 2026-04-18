@@ -1952,7 +1952,9 @@ document.addEventListener("DOMContentLoaded", () => {
       div.className = `mat-item inventory-item status-${mat.status || 'unchecked'}`;
       div.dataset.invId = mat.id;
 
-      const matNumberBadge = mat.mat_number ? `<span class="mat-number-badge">${mat.mat_number}</span>` : '';
+      let rawNum = mat.mat_number ? mat.mat_number.toString().trim() : '';
+      if (rawNum.startsWith('#')) rawNum = rawNum.substring(1);
+      const matNumberBadge = rawNum ? `<span class="mat-number-badge">${rawNum}</span>` : '';
 
       div.innerHTML = `
         <div class="mat-info">
@@ -2361,7 +2363,9 @@ document.addEventListener("DOMContentLoaded", () => {
     ` : '';
     
     // Numer maty badge
-    const matNumberBadge = mat.mat_number ? `<span class="mat-number-badge">${mat.mat_number}</span>` : '';
+    let rawNum = mat.mat_number ? mat.mat_number.toString().trim() : '';
+    if (rawNum.startsWith('#')) rawNum = rawNum.substring(1);
+    const matNumberBadge = rawNum ? `<span class="mat-number-badge">${rawNum}</span>` : '';
     
     div.innerHTML = `
       <div class="mat-info">
@@ -5950,10 +5954,12 @@ document.addEventListener("DOMContentLoaded", () => {
         ${report.response_text ? `<p><strong>Notatka:</strong> ${escapeHtml(report.response_text)}</p>` : ''}
         <p style="font-size: 0.8rem; margin-top: 8px; color: var(--muted);">Sprawdzono: ${resDate}</p>
       `;
+      reportDetailDelete.style.display = 'block';
     } else {
       reportDetailActions.style.display = 'block';
       reportDetailResolved.style.display = 'none';
       reportResolveBtn.disabled = true;
+      reportDetailDelete.style.display = 'none';
     }
 
     openModal(reportDetailModal);
