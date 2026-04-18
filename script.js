@@ -5421,6 +5421,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const reportsDeleteOldContainer = document.getElementById('reportsDeleteOldContainer');
   const reportsDeleteOldBtn = document.getElementById('reportsDeleteOldBtn');
 
+  const reportsDeleteOldModal = document.getElementById('reportsDeleteOldModal');
+  const reportsDeleteOldCancel = document.getElementById('reportsDeleteOldCancel');
+  const reportsDeleteOldConfirm = document.getElementById('reportsDeleteOldConfirm');
+
   const reportFormModal = document.getElementById('reportFormModal');
   const reportFormCancel = document.getElementById('reportFormCancel');
   const reportFormSubmit = document.getElementById('reportFormSubmit');
@@ -5651,14 +5655,21 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Usuwanie starych zgłoszeń (> 24h)
-  reportsDeleteOldBtn?.addEventListener('click', async () => {
+  reportsDeleteOldBtn?.addEventListener('click', () => {
+    openModal(reportsDeleteOldModal);
+  });
+
+  reportsDeleteOldCancel?.addEventListener('click', () => {
+    closeModal(reportsDeleteOldModal);
+  });
+
+  reportsDeleteOldConfirm?.addEventListener('click', async () => {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     
-    if (!confirm('Czy na pewno chcesz usunąć wszystkie zgłoszenia STARSZE niż 24h? Ta operacja jest nieodwracalna.')) return;
-    
-    const origText = reportsDeleteOldBtn.innerText;
-    reportsDeleteOldBtn.innerText = 'Usuwanie...';
-    reportsDeleteOldBtn.disabled = true;
+    const origText = reportsDeleteOldConfirm.innerText;
+    reportsDeleteOldConfirm.innerText = 'Usuwanie...';
+    reportsDeleteOldConfirm.disabled = true;
+    reportsDeleteOldCancel.disabled = true;
     
     try {
       const { error } = await window.supabase
@@ -5669,16 +5680,15 @@ document.addEventListener("DOMContentLoaded", () => {
         
       if (error) throw error;
       showToast('Usunięto stare zgłoszenia!', 'success');
+      closeModal(reportsDeleteOldModal);
       await fetchReports();
     } catch (err) {
       console.error("Błąd usuwania starych zgłoszeń:", err);
       showToast("Nie udało się usunąć starych zgłoszeń.", "error");
     } finally {
-      reportsDeleteOldBtn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-        Usuń starsze niż 24h
-      `;
-      reportsDeleteOldBtn.disabled = false;
+      reportsDeleteOldConfirm.innerText = origText;
+      reportsDeleteOldConfirm.disabled = false;
+      reportsDeleteOldCancel.disabled = false;
     }
   });
 
