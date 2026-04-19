@@ -692,15 +692,7 @@ document.addEventListener("DOMContentLoaded", () => {
       isTitleBlinking = false;
       document.title = originalDocumentTitle;
 
-      // GLOBALNE wyzerowanie powiadomień (u wszystkich)
-      if (window.reportsChannel) {
-        window.reportsChannel.send({
-          type: 'broadcast',
-          event: 'clear_badges',
-          payload: {}
-        });
-      }
-      
+
       // Odśwież UI przycisku powiadomień 
       const notifBtnText = document.getElementById('toggleNotificationsText');
       if (notifBtnText && "Notification" in window) {
@@ -5618,19 +5610,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }, 1000);
             }
         }
-      })
-      .on('broadcast', { event: 'clear_badges' }, () => {
-          // Ktoś inny wszedł w zakładkę Zgłoszenia, czyścimy licznik 
-          unreadReportIds.clear();
-          const reportsTileBadge = document.getElementById('reportsTileBadge');
-          if (reportsTileBadge) reportsTileBadge.style.display = 'none';
-          
-          if (titleBlinkInterval) {
-              clearInterval(titleBlinkInterval);
-              titleBlinkInterval = null;
-          }
-          isTitleBlinking = false;
-          document.title = originalDocumentTitle;
       })
       .subscribe();
       
