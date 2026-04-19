@@ -5567,37 +5567,54 @@ document.addEventListener("DOMContentLoaded", () => {
         
         const isNew = (payload.eventType === 'INSERT');
         const isResolved = (payload.eventType === 'UPDATE' && payload.new.status === 'resolved' && payload.old.status !== 'resolved');
+        const isDeleted = (payload.eventType === 'DELETE');
 
-        if ((isNew || isResolved) && currentView !== 'reports') {
-          unreadReportsCount++;
-          const reportsTileBadge = document.getElementById('reportsTileBadge');
-          if (reportsTileBadge) {
-              reportsTileBadge.textContent = unreadReportsCount;
-              reportsTileBadge.style.display = 'inline-block';
-              reportsTileBadge.style.backgroundColor = isNew ? 'var(--danger, #ef4444)' : 'var(--success, #10b981)';
-          }
-          
-          if ("Notification" in window && Notification.permission === "granted") {
-              const notifTitle = isNew ? "Nowe zgłoszenie" : "Zgłoszenie sprawdzone";
-              const notifBody = isNew ? "W systemie pojawiło się nowe zgłoszenie." : "Zgłoszenie zostało oznaczone jako sprawdzone.";
-              const notif = new Notification(notifTitle, {
-                  body: notifBody,
-                  icon: "icons/icon-192.png"
-              });
-              notif.onclick = () => {
-                  window.focus();
-                  navigateTo('reports');
-              };
-          }
-          
-          if (document.hidden && !isTitleBlinking) {
-              isTitleBlinking = true;
-              let titleState = false;
-              titleBlinkInterval = setInterval(() => {
-                  document.title = titleState ? "🔔 Akcja w zgłoszeniach!" : originalDocumentTitle;
-                  titleState = !titleState;
-              }, 1000);
-          }
+        if (isDeleted) {
+            unreadReportsCount = Math.max(0, unreadReportsCount - 1);
+            const reportsTileBadge = document.getElementById('reportsTileBadge');
+            if (reportsTileBadge) {
+                if (unreadReportsCount > 0) {
+                    reportsTileBadge.textContent = unreadReportsCount;
+                } else {
+                    reportsTileBadge.style.display = 'none';
+                    if (titleBlinkInterval) {
+                        clearInterval(titleBlinkInterval);
+                        titleBlinkInterval = null;
+                    }
+                    isTitleBlinking = false;
+                    document.title = originalDocumentTitle;
+                }
+            }
+        } else if ((isNew || isResolved) && currentView !== 'reports') {
+            unreadReportsCount++;
+            const reportsTileBadge = document.getElementById('reportsTileBadge');
+            if (reportsTileBadge) {
+                reportsTileBadge.textContent = unreadReportsCount;
+                reportsTileBadge.style.display = 'inline-block';
+                reportsTileBadge.style.backgroundColor = isNew ? 'var(--danger, #ef4444)' : 'var(--success, #10b981)';
+            }
+            
+            if ("Notification" in window && Notification.permission === "granted") {
+                const notifTitle = isNew ? "Nowe zgłoszenie" : "Zgłoszenie sprawdzone";
+                const notifBody = isNew ? "W systemie pojawiło się nowe zgłoszenie." : "Zgłoszenie zostało oznaczone jako sprawdzone.";
+                const notif = new Notification(notifTitle, {
+                    body: notifBody,
+                    icon: "icons/icon-192.png"
+                });
+                notif.onclick = () => {
+                    window.focus();
+                    navigateTo('reports');
+                };
+            }
+            
+            if (document.hidden && !isTitleBlinking) {
+                isTitleBlinking = true;
+                let titleState = false;
+                titleBlinkInterval = setInterval(() => {
+                    document.title = titleState ? "🔔 Akcja w zgłoszeniach!" : originalDocumentTitle;
+                    titleState = !titleState;
+                }, 1000);
+            }
         }
       })
       .on('broadcast', { event: 'clear_badges' }, () => {
