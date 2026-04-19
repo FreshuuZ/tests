@@ -6,10 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let isTitleBlinking = false;
   const originalDocumentTitle = document.title;
   
-  // Prośba o uprawnienia do powiadomień
-  if ("Notification" in window && Notification.permission === "default") {
-    Notification.requestPermission();
-  }
+  // Powiadomienia włączamy manualnie przyciskiem w Zgłoszeniach
 
   // ==================== GLOBAL STATE & CACHE ====================
   let allLogoMats = [];
@@ -684,7 +681,7 @@ document.addEventListener("DOMContentLoaded", () => {
       headerTitle.textContent = 'Zgłoszenia';
       backBtn.style.display = 'flex';
       
-      // Wyzerowanie powiadomień
+      // LOKALNE wyzerowanie powiadomień
       unreadReportsCount = 0;
       const reportsTileBadge = document.getElementById('reportsTileBadge');
       if (reportsTileBadge) reportsTileBadge.style.display = 'none';
@@ -694,6 +691,29 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       isTitleBlinking = false;
       document.title = originalDocumentTitle;
+
+      // GLOBALNE wyzerowanie powiadomień (u wszystkich)
+      if (window.reportsChannel) {
+        window.reportsChannel.send({
+          type: 'broadcast',
+          event: 'clear_badges',
+          payload: {}
+        });
+      }
+      
+      // Odśwież UI przycisku powiadomień 
+      const notifBtnText = document.getElementById('toggleNotificationsText');
+      if (notifBtnText && "Notification" in window) {
+          if (Notification.permission === 'granted') {
+              notifBtnText.textContent = 'Powiadomienia (wł.)';
+              document.getElementById('notifIconOff').style.display = 'none';
+              document.getElementById('notifIconOn').style.display = 'inline-block';
+          } else {
+              notifBtnText.textContent = 'Włącz powiadomienia';
+              document.getElementById('notifIconOff').style.display = 'inline-block';
+              document.getElementById('notifIconOn').style.display = 'none';
+          }
+      }
 
       (async () => {
           await fetchReports();
@@ -5545,17 +5565,23 @@ document.addEventListener("DOMContentLoaded", () => {
           await fetchReports();
         }
         
-        if (payload.eventType === 'INSERT' && currentView !== 'reports') {
+        const isNew = (payload.eventType === 'INSERT');
+        const isResolved = (payload.eventType === 'UPDATE' && payload.new.status === 'resolved' && payload.old.status !== 'resolved');
+
+        if ((isNew || isResolved) && currentView !== 'reports') {
           unreadReportsCount++;
           const reportsTileBadge = document.getElementById('reportsTileBadge');
           if (reportsTileBadge) {
               reportsTileBadge.textContent = unreadReportsCount;
               reportsTileBadge.style.display = 'inline-block';
+              reportsTileBadge.style.backgroundColor = isNew ? 'var(--danger, #ef4444)' : 'var(--success, #10b981)';
           }
           
           if ("Notification" in window && Notification.permission === "granted") {
-              const notif = new Notification("Nowe zgłoszenie", {
-                  body: "W systemie pojawiło się nowe zgłoszenie do sprawdzenia.",
+              const notifTitle = isNew ? "Nowe zgłoszenie" : "Zgłoszenie sprawdzone";
+              const notifBody = isNew ? "W systemie pojawiło się nowe zgłoszenie." : "Zgłoszenie zostało oznaczone jako sprawdzone.";
+              const notif = new Notification(notifTitle, {
+                  body: notifBody,
                   icon: "icons/icon-192.png"
               });
               notif.onclick = () => {
@@ -5568,13 +5594,28 @@ document.addEventListener("DOMContentLoaded", () => {
               isTitleBlinking = true;
               let titleState = false;
               titleBlinkInterval = setInterval(() => {
-                  document.title = titleState ? "🔔 Nowe zgłoszenie!" : originalDocumentTitle;
+                  document.title = titleState ? "🔔 Akcja w zgłoszeniach!" : originalDocumentTitle;
                   titleState = !titleState;
               }, 1000);
           }
         }
       })
+      .on('broadcast', { event: 'clear_badges' }, () => {
+          // Ktoś inny wszedł w zakładkę Zgłoszenia, czyścimy licznik 
+          unreadReportsCount = 0;
+          const reportsTileBadge = document.getElementById('reportsTileBadge');
+          if (reportsTileBadge) reportsTileBadge.style.display = 'none';
+          
+          if (titleBlinkInterval) {
+              clearInterval(titleBlinkInterval);
+              titleBlinkInterval = null;
+          }
+          isTitleBlinking = false;
+          document.title = originalDocumentTitle;
+      })
       .subscribe();
+      
+      window.reportsChannel = reportsChannel;
 
     initPalletSystem();
     navigateTo('home');
@@ -5594,6 +5635,33 @@ document.addEventListener("DOMContentLoaded", () => {
   const reportsSearch = document.getElementById('reportsSearch');
   const reportsList = document.getElementById('reportsList');
   const reportsPendingCount = document.getElementById('reportsPendingCount');
+  
+  // Zmienne do przycisku powiadomień
+  const toggleNotificationsBtn = document.getElementById('toggleNotificationsBtn');
+  
+  if (toggleNotificationsBtn) {
+      toggleNotificationsBtn.addEventListener('click', async () => {
+          if (!("Notification" in window)) {
+             alert("Twoja przeglądarka nie obsługuje powiadomień.");
+             return;
+          }
+          if (Notification.permission === 'default' || Notification.permission === 'denied') {
+              const perm = await Notification.requestPermission();
+              // Aktualizuj UI na podstawie odpowiedzi
+              const notifBtnText = document.getElementById('toggleNotificationsText');
+              if (perm === 'granted') {
+                  if(notifBtnText) notifBtnText.textContent = 'Powiadomienia (wł.)';
+                  document.getElementById('notifIconOff').style.display = 'none';
+                  document.getElementById('notifIconOn').style.display = 'inline-block';
+                  new Notification('Elis ServiceHub', { body: 'Powiadomienia pomyślnie uruchomione!', icon: 'icons/icon-192.png' });
+              } else {
+                  alert("Powiadomienia zablokowane. Kliknij w kłódkę obok pola adresu strony, by zezwolić na powiadomienia ręcznie.");
+              }
+          } else {
+              alert("Masz już włączone powiadomienia! Jeśli nie pojawiają się w rogu ekranu sprawdź, czy w systemie Windows/Android nie masz włączonej opcji 'Nie przeszkadzać'.");
+          }
+      });
+  }
   const reportsResolvedCount = document.getElementById('reportsResolvedCount');
   const newReportBtn = document.getElementById('newReportBtn');
   const reportsTabs = document.querySelectorAll('.reports-tab');
