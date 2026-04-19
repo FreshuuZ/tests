@@ -1,4 +1,4 @@
-const CACHE_NAME = "elis-panel-v38";
+const CACHE_NAME = "elis-panel-v39";
 const ASSETS = [
   "./",
   "./index.html",
