@@ -1,5 +1,16 @@
 document.addEventListener("DOMContentLoaded", () => {
   
+  // ==================== ZMIENNE POWIADOMIEŃ ====================
+  let unreadReportsCount = 0;
+  let titleBlinkInterval = null;
+  let isTitleBlinking = false;
+  const originalDocumentTitle = document.title;
+  
+  // Prośba o uprawnienia do powiadomień
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+
   // ==================== GLOBAL STATE & CACHE ====================
   let allLogoMats = [];
   // ==================== OPTYMALIZACJA LISTY MAT ====================
@@ -672,6 +683,18 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (viewName === 'reports') {
       headerTitle.textContent = 'Zgłoszenia';
       backBtn.style.display = 'flex';
+      
+      // Wyzerowanie powiadomień
+      unreadReportsCount = 0;
+      const reportsTileBadge = document.getElementById('reportsTileBadge');
+      if (reportsTileBadge) reportsTileBadge.style.display = 'none';
+      if (titleBlinkInterval) {
+        clearInterval(titleBlinkInterval);
+        titleBlinkInterval = null;
+      }
+      isTitleBlinking = false;
+      document.title = originalDocumentTitle;
+
       (async () => {
           await fetchReports();
       })();
@@ -5494,8 +5517,10 @@ document.addEventListener("DOMContentLoaded", () => {
                  const itemEl = inventoryList.querySelector(`[data-inv-id="${payload.new.id}"]`);
                  if (itemEl) {
                      itemEl.className = 'inventory-item mat-item status-' + payload.new.status;
-                     const qtyInput = itemEl.querySelector('.inv-qty-val');
-                     if (qtyInput) qtyInput.value = payload.new.custom_qty !== null ? payload.new.custom_qty : payload.new.original_qty;
+                     const qtyInput = itemEl.querySelector('.inv-qty-input');
+                     if (qtyInput && document.activeElement !== qtyInput) {
+                         qtyInput.value = payload.new.quantity;
+                     }
                  }
                  if (typeof updateInventoryStats === 'function') updateInventoryStats();
              }
@@ -5518,6 +5543,35 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log('✨ Zmiana w zgłoszeniach!', payload);
         if (currentView === 'reports') {
           await fetchReports();
+        }
+        
+        if (payload.eventType === 'INSERT' && currentView !== 'reports') {
+          unreadReportsCount++;
+          const reportsTileBadge = document.getElementById('reportsTileBadge');
+          if (reportsTileBadge) {
+              reportsTileBadge.textContent = unreadReportsCount;
+              reportsTileBadge.style.display = 'inline-block';
+          }
+          
+          if ("Notification" in window && Notification.permission === "granted") {
+              const notif = new Notification("Nowe zgłoszenie", {
+                  body: "W systemie pojawiło się nowe zgłoszenie do sprawdzenia.",
+                  icon: "icons/icon-192.png"
+              });
+              notif.onclick = () => {
+                  window.focus();
+                  navigateTo('reports');
+              };
+          }
+          
+          if (document.hidden && !isTitleBlinking) {
+              isTitleBlinking = true;
+              let titleState = false;
+              titleBlinkInterval = setInterval(() => {
+                  document.title = titleState ? "🔔 Nowe zgłoszenie!" : originalDocumentTitle;
+                  titleState = !titleState;
+              }, 1000);
+          }
         }
       })
       .subscribe();
