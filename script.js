@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   
   // ==================== ZMIENNE POWIADOMIEŃ ====================
-  let unreadReportsCount = 0;
+  let unreadReportIds = new Set();
   let titleBlinkInterval = null;
   let isTitleBlinking = false;
   const originalDocumentTitle = document.title;
@@ -682,7 +682,7 @@ document.addEventListener("DOMContentLoaded", () => {
       backBtn.style.display = 'flex';
       
       // LOKALNE wyzerowanie powiadomień
-      unreadReportsCount = 0;
+      unreadReportIds.clear();
       const reportsTileBadge = document.getElementById('reportsTileBadge');
       if (reportsTileBadge) reportsTileBadge.style.display = 'none';
       if (titleBlinkInterval) {
@@ -5570,30 +5570,32 @@ document.addEventListener("DOMContentLoaded", () => {
         const isDeleted = (payload.eventType === 'DELETE');
 
         if (isDeleted) {
-            unreadReportsCount = Math.max(0, unreadReportsCount - 1);
-            const reportsTileBadge = document.getElementById('reportsTileBadge');
-            if (reportsTileBadge) {
-                if (unreadReportsCount > 0) {
-                    reportsTileBadge.textContent = unreadReportsCount;
-                } else {
-                    reportsTileBadge.style.display = 'none';
-                    if (titleBlinkInterval) {
-                        clearInterval(titleBlinkInterval);
-                        titleBlinkInterval = null;
-                    }
-                    isTitleBlinking = false;
-                    document.title = originalDocumentTitle;
-                }
-            }
+            unreadReportIds.delete(payload.old.id);
         } else if ((isNew || isResolved) && currentView !== 'reports') {
-            unreadReportsCount++;
-            const reportsTileBadge = document.getElementById('reportsTileBadge');
-            if (reportsTileBadge) {
-                reportsTileBadge.textContent = unreadReportsCount;
+            unreadReportIds.add(payload.new.id);
+        }
+
+        const reportsTileBadge = document.getElementById('reportsTileBadge');
+        if (reportsTileBadge && currentView !== 'reports') {
+            if (unreadReportIds.size > 0) {
+                reportsTileBadge.textContent = unreadReportIds.size;
                 reportsTileBadge.style.display = 'inline-block';
-                reportsTileBadge.style.backgroundColor = isNew ? 'var(--danger, #ef4444)' : 'var(--success, #10b981)';
+                // Ostatnia akcja definiuje nowy kolor
+                if (isResolved || isNew) {
+                    reportsTileBadge.style.backgroundColor = isResolved ? 'var(--success, #10b981)' : 'var(--danger, #ef4444)';
+                }
+            } else {
+                reportsTileBadge.style.display = 'none';
+                if (titleBlinkInterval) {
+                    clearInterval(titleBlinkInterval);
+                    titleBlinkInterval = null;
+                }
+                isTitleBlinking = false;
+                document.title = originalDocumentTitle;
             }
-            
+        }
+        
+        if ((isNew || isResolved) && currentView !== 'reports') {
             if ("Notification" in window && Notification.permission === "granted") {
                 const notifTitle = isNew ? "Nowe zgłoszenie" : "Zgłoszenie sprawdzone";
                 const notifBody = isNew ? "W systemie pojawiło się nowe zgłoszenie." : "Zgłoszenie zostało oznaczone jako sprawdzone.";
@@ -5619,7 +5621,7 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .on('broadcast', { event: 'clear_badges' }, () => {
           // Ktoś inny wszedł w zakładkę Zgłoszenia, czyścimy licznik 
-          unreadReportsCount = 0;
+          unreadReportIds.clear();
           const reportsTileBadge = document.getElementById('reportsTileBadge');
           if (reportsTileBadge) reportsTileBadge.style.display = 'none';
           
