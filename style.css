@@ -410,7 +410,10 @@ h3, h4 {
 /* --- WYSZUKIWARKA MAT --- */
 .search-box {
   position: relative;
+  display: flex;
+  align-items: center;
   margin-bottom: 16px;
+  width: 100%;
 }
 .search-icon {
   position: absolute;
@@ -421,21 +424,22 @@ h3, h4 {
   height: 20px;
   color: var(--muted);
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
 }
 .search-input {
   width: 100%;
-  padding: 14px 16px 14px 48px !important;
+  padding: 14px 52px 14px 48px !important;
   font-size: 1rem;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 2px solid var(--border-color);
-  background: transparent;
+  background: var(--bg-card);
   color: var(--text);
   transition: all 0.2s ease;
   font-weight: 500;
 }
 .search-input::placeholder {
   padding-left: 0 !important;
+  opacity: 0.7;
 }
 .search-input:focus {
   outline: none;
@@ -5570,36 +5574,50 @@ body.dark .site-lock-admin-pin-input {
   right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  border: none;
-  background: rgba(0, 169, 190, 0.12);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(0, 169, 190, 0.25);
+  background: rgba(0, 169, 190, 0.1);
   color: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  z-index: 2;
+  z-index: 10;
 }
 .search-camera-btn:hover {
   background: var(--primary);
   color: #fff;
-  transform: translateY(-50%) scale(1.08);
-  box-shadow: 0 4px 12px rgba(0, 169, 190, 0.3);
+  border-color: var(--primary);
+  transform: translateY(-50%) scale(1.06);
+  box-shadow: 0 4px 14px rgba(0, 169, 190, 0.35);
 }
 .search-camera-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 body.dark .search-camera-btn {
-  background: rgba(0, 194, 209, 0.18);
+  background: rgba(0, 194, 209, 0.15);
+  border-color: rgba(0, 194, 209, 0.3);
   color: var(--primary);
 }
 body.dark .search-camera-btn:hover {
   background: var(--primary);
   color: #0d1117;
+}
+
+.custom-select-search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.custom-select-search-container .search-camera-btn {
+  right: 6px;
+  width: 32px;
+  height: 32px;
 }
 
 .camera-modal .camera-modal-content {
