@@ -1567,8 +1567,16 @@ document.addEventListener("DOMContentLoaded", () => {
     
     persist(); 
   };
-  const openModal = (modal) => modal.style.display = "flex";
-  const closeModal = (modal) => modal.style.display = "none";
+  const openModal = (modal) => {
+    if (!modal) return;
+    modal.classList.add("active");
+    modal.style.display = "flex";
+  };
+  const closeModal = (modal) => {
+    if (!modal) return;
+    modal.classList.remove("active");
+    modal.style.display = "none";
+  };
 
   function openSimpleEditModal(index) {
     editIndex = index;
@@ -6774,9 +6782,12 @@ document.addEventListener("DOMContentLoaded", () => {
     async function startCameraStream() {
       stopCameraStream();
 
+      // Wyczyść stary fallback
+      const oldFallback = document.getElementById('cameraNoStreamFallback');
+      if (oldFallback) oldFallback.remove();
+
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        console.warn("navigator.mediaDevices.getUserMedia jest niedostępny.");
-        showToast("Aparat niedostępny w bieżącym kontekście. Użyj opcji 'Ze zdjęcia'.", "error");
+        showNoStreamFallback("Aparat na żywo wymaga połączenia HTTPS. Użyj opcji 'Ze zdjęcia'.");
         return;
       }
 
@@ -6844,8 +6855,33 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       } else {
         console.warn("Aparat niedostępny lub brak uprawnień:", lastError);
-        showToast("Brak dostępu do aparatu. Wybierz zdjęcie z pliku.", "error");
+        showNoStreamFallback("Nie udało się uzyskać dostępu do kamery na żywo. Wybierz zdjęcie z pliku.");
       }
+    }
+
+    function showNoStreamFallback(msg) {
+      const container = document.querySelector('.camera-viewport-container');
+      if (!container) return;
+      
+      const fallback = document.createElement('div');
+      fallback.id = 'cameraNoStreamFallback';
+      fallback.style.cssText = `
+        position: absolute; inset: 0; background: rgba(13, 17, 23, 0.92);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: 20px; text-align: center; color: #fff; gap: 14px; z-index: 8;
+      `;
+      fallback.innerHTML = `
+        <span style="font-size: 2.2rem;">📷</span>
+        <p style="margin: 0; font-size: 0.9rem; color: var(--muted); line-height: 1.4;">${escapeHtml(msg)}</p>
+        <button type="button" class="btn-primary" id="fallbackPickFileBtn" style="padding: 10px 20px; font-size: 0.95rem;">
+          📁 Wybierz zdjęcie / Aparat
+        </button>
+      `;
+      container.appendChild(fallback);
+
+      document.getElementById('fallbackPickFileBtn')?.addEventListener('click', () => {
+        cameraFileInput?.click();
+      });
     }
 
     function stopCameraStream() {
