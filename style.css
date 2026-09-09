@@ -1388,6 +1388,9 @@ body.dark .multi-alternatives-list li {
   z-index: 10000; 
   padding: 16px; 
 }
+.modal.active {
+  display: flex !important;
+}
 .modal-content {
   background: var(--bg-card); 
   border-radius: var(--radius); 
@@ -5595,8 +5598,13 @@ body.dark .site-lock-admin-pin-input {
   box-shadow: 0 4px 14px rgba(0, 169, 190, 0.35);
 }
 .search-camera-btn svg {
-  width: 18px;
-  height: 18px;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  display: block !important;
+  stroke: currentColor !important;
+  flex-shrink: 0 !important;
 }
 body.dark .search-camera-btn {
   background: rgba(0, 194, 209, 0.15);
