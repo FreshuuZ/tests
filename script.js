@@ -1068,7 +1068,15 @@ document.addEventListener("DOMContentLoaded", () => {
     wrapper.innerHTML = `
       <button type="button" class="custom-select-trigger placeholder" aria-haspopup="listbox" aria-expanded="false">${placeholder}</button>
       <div class="custom-select-panel" role="listbox">
-        <input type="search" class="custom-select-search" placeholder="🔍 Szukaj...">
+        <div class="custom-select-search-container">
+          <input type="search" class="custom-select-search" placeholder="🔍 Szukaj...">
+          <button type="button" class="search-camera-btn" title="Skanuj matę z aparatu / zdjęcia" aria-label="Skanuj matę z aparatu">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </button>
+        </div>
         <ul class="custom-select-options"></ul>
       </div>`;
     
@@ -1126,6 +1134,13 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         updateOptions: (newOptions) => {
             options = newOptions;
+        },
+        selectValue: (val) => {
+            appState[stateKey] = val;
+            trigger.textContent = val;
+            trigger.classList.remove("placeholder");
+            selectInstance.close();
+            wrapper.dispatchEvent(new Event("change", { bubbles: true }));
         }
     };
     
@@ -1187,6 +1202,7 @@ document.addEventListener("DOMContentLoaded", () => {
     wrapper.reset = selectInstance.reset;
     wrapper.close = selectInstance.close;
     wrapper.updateOptions = selectInstance.updateOptions;
+    wrapper.selectInstance = selectInstance;
     return wrapper;
   }
   
@@ -6710,13 +6726,31 @@ document.addEventListener("DOMContentLoaded", () => {
     let mediaStream = null;
     let currentFacingMode = 'environment';
     let activeTargetInputId = 'matsSearch';
+    let activeTargetSelectWrapper = null;
 
-    document.querySelectorAll('.search-camera-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        activeTargetInputId = btn.getAttribute('data-target-input') || 'matsSearch';
-        openScannerModal();
-      });
+    // Delegowane zdarzenie kliknięcia przycisku aparatu (działa też w custom selectach)
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.search-camera-btn');
+      if (!btn) return;
+      
+      e.preventDefault();
+      e.stopPropagation();
+
+      const inputId = btn.getAttribute('data-target-input');
+      const customSelectWrapper = btn.closest('.custom-select-wrapper');
+
+      if (customSelectWrapper) {
+        activeTargetSelectWrapper = customSelectWrapper;
+        activeTargetInputId = null;
+      } else if (inputId) {
+        activeTargetInputId = inputId;
+        activeTargetSelectWrapper = null;
+      } else {
+        activeTargetInputId = 'matsSearch';
+        activeTargetSelectWrapper = null;
+      }
+
+      openScannerModal();
     });
 
     async function openScannerModal() {
@@ -6739,22 +6773,78 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function startCameraStream() {
       stopCameraStream();
-      try {
-        const constraints = {
-          video: {
-            facingMode: { ideal: currentFacingMode },
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.warn("navigator.mediaDevices.getUserMedia jest niedostępny.");
+        showToast("Aparat niedostępny w bieżącym kontekście. Użyj opcji 'Ze zdjęcia'.", "error");
+        return;
+      }
+
+      let stream = null;
+      let lastError = null;
+      const modesToTry = [currentFacingMode, currentFacingMode === 'environment' ? 'user' : 'environment'];
+
+      // Próba 1: Idealna rozdzielczość i tryb aparatu
+      for (const mode of modesToTry) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: mode },
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            }
+          });
+          if (stream) {
+            currentFacingMode = mode;
+            break;
           }
-        };
-        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch (err) {
+          lastError = err;
+        }
+      }
+
+      // Próba 2: Sam tryb aparatu
+      if (!stream) {
+        for (const mode of modesToTry) {
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: mode }
+            });
+            if (stream) {
+              currentFacingMode = mode;
+              break;
+            }
+          } catch (err) {
+            lastError = err;
+          }
+        }
+      }
+
+      // Próba 3: Dowolne wideo
+      if (!stream) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        } catch (err) {
+          lastError = err;
+        }
+      }
+
+      if (stream) {
+        mediaStream = stream;
         if (cameraVideo) {
           cameraVideo.srcObject = mediaStream;
-          await cameraVideo.play();
+          cameraVideo.setAttribute('playsinline', 'true');
+          cameraVideo.setAttribute('autoplay', 'true');
+          cameraVideo.setAttribute('muted', 'true');
+          try {
+            await cameraVideo.play();
+          } catch (e) {
+            console.warn("Wideo play error:", e);
+          }
         }
-      } catch (err) {
-        console.warn("Aparat niedostępny:", err);
-        showToast("Nie udało się otworzyć aparatu. Użyj opcji 'Ze zdjęcia'.", "error");
+      } else {
+        console.warn("Aparat niedostępny lub brak uprawnień:", lastError);
+        showToast("Brak dostępu do aparatu. Wybierz zdjęcie z pliku.", "error");
       }
     }
 
@@ -6911,14 +7001,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function selectMatchedMat(mat) {
-      const targetInput = document.getElementById(activeTargetInputId);
-      if (targetInput) {
-        targetInput.value = mat.name;
-        targetInput.dispatchEvent(new Event('input', { bubbles: true }));
-        targetInput.focus();
+      const matName = mat.name || (typeof mat === 'string' ? mat : '');
+
+      if (activeTargetSelectWrapper && activeTargetSelectWrapper.selectInstance) {
+        activeTargetSelectWrapper.selectInstance.selectValue(matName);
+      } else if (activeTargetInputId) {
+        const targetInput = document.getElementById(activeTargetInputId);
+        if (targetInput) {
+          targetInput.value = matName;
+          targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+          targetInput.focus();
+        }
       }
+
       closeScannerModal();
-      showToast(`Znaleziono matę: ${mat.name}`, "success");
+      showToast(`Znaleziono matę: ${matName}`, "success");
     }
   }
 
