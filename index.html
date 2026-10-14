@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Elis ServiceHub — Centrum Główne</title>
-  <link rel="stylesheet" href="style.css?v=28">
+  <link rel="stylesheet" href="style.css?v=29">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0d1117">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1336,7 +1336,12 @@
           <input type="text" id="addMatNumber" placeholder="np. 12345">
         </div>
 
-        <div class="mat-form-group full-width">
+        <div id="addSeasonalLocationFields" class="mat-form-group full-width" style="display: none;">
+          <label for="addMatSeasonalLocation">Lokalizacja (opcjonalnie)</label>
+          <input type="text" id="addMatSeasonalLocation" placeholder="Wózek">
+        </div>
+
+        <div id="addLocationTypeGroup" class="mat-form-group full-width">
           <label>Typ lokalizacji</label>
           <div class="location-type-toggle">
             <label class="location-type-option">
@@ -1367,10 +1372,15 @@
             <input type="text" id="addMatRow" placeholder="np. 1">
           </div>
           <div class="mat-form-group">
-            <label for="addMatPipe">Rura</label>
-            <input type="text" id="addMatPipe" placeholder="np. 7,,12 lub 3,4,5">
+            <label for="addMatPipe">Rura od</label>
+            <input type="number" id="addMatPipe" min="0" inputmode="numeric" placeholder="np. 7">
+          </div>
+          <div class="mat-form-group">
+            <label for="addMatPipeTo">Rura do (opcjonalnie)</label>
+            <input type="number" id="addMatPipeTo" min="0" inputmode="numeric" placeholder="np. 12">
           </div>
         </div>
+        <div id="addLocationPreview" class="location-preview full-width"></div>
 
         <!-- Pole dla Palety -->
         <div id="addPalletFields" class="pallet-fields" style="display: none;">
@@ -1421,7 +1431,12 @@
           <input type="text" id="editMatNumber" placeholder="np. MAT-001 lub 12345">
         </div>
 
-        <div class="mat-form-group full-width">
+        <div id="editSeasonalLocationFields" class="mat-form-group full-width" style="display: none;">
+          <label for="editMatSeasonalLocation">Lokalizacja (opcjonalnie)</label>
+          <input type="text" id="editMatSeasonalLocation" placeholder="Wózek">
+        </div>
+
+        <div id="editLocationTypeGroup" class="mat-form-group full-width">
           <label>Typ lokalizacji</label>
           <div class="location-type-toggle">
             <label class="location-type-option">
@@ -1452,10 +1467,15 @@
             <input type="text" id="editMatRow" placeholder="np. 1">
           </div>
           <div class="mat-form-group">
-            <label for="editMatPipe">Rura</label>
-            <input type="text" id="editMatPipe" placeholder="np. 7,,12 lub 3,4,5">
+            <label for="editMatPipe">Rura od</label>
+            <input type="number" id="editMatPipe" min="0" inputmode="numeric" placeholder="np. 7">
+          </div>
+          <div class="mat-form-group">
+            <label for="editMatPipeTo">Rura do (opcjonalnie)</label>
+            <input type="number" id="editMatPipeTo" min="0" inputmode="numeric" placeholder="np. 12">
           </div>
         </div>
+        <div id="editLocationPreview" class="location-preview full-width"></div>
 
         <!-- Pole dla Palety -->
         <div id="editPalletFields" class="pallet-fields" style="display: none;">
@@ -1539,7 +1559,8 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="logoData.js?v=33"></script>
-  <script src="script.js?v=35"></script>
+  <script src="locationFormat.js?v=1"></script>
+  <script src="script.js?v=37"></script>
 </body>
 
 </html>
