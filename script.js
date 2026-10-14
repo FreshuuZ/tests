@@ -67,6 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const addMatRack = document.getElementById('addMatRack');
   const addMatRow = document.getElementById('addMatRow');
   const addMatPipe = document.getElementById('addMatPipe');
+  const addMatPipeTo = document.getElementById('addMatPipeTo');
   const addMatPallet = document.getElementById('addMatPallet');
   const addMatSize = document.getElementById('addMatSize');
   const addMatQty = document.getElementById('addMatQty');
@@ -83,6 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const editMatRack = document.getElementById('editMatRack');
   const editMatRow = document.getElementById('editMatRow');
   const editMatPipe = document.getElementById('editMatPipe');
+  const editMatPipeTo = document.getElementById('editMatPipeTo');
   const editMatPallet = document.getElementById('editMatPallet');
   const editMatSize = document.getElementById('editMatSize');
   const editMatQty = document.getElementById('editMatQty');
@@ -301,41 +303,67 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ==================== BUDOWANIE LOKALIZACJI ====================
 
-  function buildLocationString(rack, row, pipe) {
-    if (!rack && !row && !pipe) return '';
-    
-    let parts = [];
-    if (rack) parts.push(rack);
-    if (row) parts.push(row);
-    if (pipe) parts.push(pipe);
-    
-    return parts.join('-');
+  // Zwraca { location, error } na podstawie pól formularza (prefix: 'add' | 'edit')
+  function readLocationFromForm(prefix) {
+    if (matFormTarget === 'seasonal') {
+      const text = document.getElementById(`${prefix}MatSeasonalLocation`).value.trim() || 'Wózek';
+      return { location: LocationFormat.normalizeLocation(text), error: null };
+    }
+
+    const locationType = document.querySelector(`input[name="${prefix}LocationType"]:checked`).value;
+
+    if (locationType !== 'rack') {
+      const text = document.getElementById(`${prefix}MatPallet`).value.trim() || 'PALETA';
+      return { location: LocationFormat.normalizeLocation(text), error: null };
+    }
+
+    const rack = document.getElementById(`${prefix}MatRack`).value.trim();
+    const row = document.getElementById(`${prefix}MatRow`).value.trim();
+    const pipeFrom = document.getElementById(`${prefix}MatPipe`).value.trim();
+    const pipeTo = document.getElementById(`${prefix}MatPipeTo`).value.trim();
+
+    if (!rack && !row && !pipeFrom && !pipeTo) return { location: '', error: null };
+    if (!/^(\d+|[A-Za-z])$/.test(rack)) return { location: '', error: 'Regał to numer (np. 2) albo jedna litera (np. A).' };
+    if (!/^\d+$/.test(row)) return { location: '', error: 'Podaj numer rzędu.' };
+    if ((pipeFrom && !/^\d+$/.test(pipeFrom)) || (pipeTo && !/^\d+$/.test(pipeTo))) {
+      return { location: '', error: 'Numery rur muszą być liczbami.' };
+    }
+
+    return { location: LocationFormat.buildCanonical(rack, row, pipeFrom, pipeTo), error: null };
   }
 
-  function parseLocationString(location) {
-    if (!location) return { type: 'rack', rack: '', row: '', pipe: '', pallet: '' };
-    
-    // Sprawdź czy to paleta
-    const isPallet = location.toUpperCase().includes('PALETA') || 
-                    location.toUpperCase().includes('MAGAZYN') ||
-                    location.toUpperCase().includes('POD-') ||
-                    !location.includes('-') ||
-                    !/^\d/.test(location.charAt(0)) && !/^[A-Z]-\d/.test(location);
-    
-    if (isPallet) {
-      return { type: 'pallet', rack: '', row: '', pipe: '', pallet: location };
+  // Maty sezonowe leżą na wózku – zamiast regału/palety jedno opcjonalne pole
+  function setLocationLayout(prefix, target) {
+    const isSeasonal = target === 'seasonal';
+    document.getElementById(`${prefix}SeasonalLocationFields`).style.display = isSeasonal ? 'block' : 'none';
+    document.getElementById(`${prefix}LocationTypeGroup`).style.display = isSeasonal ? 'none' : '';
+    if (isSeasonal) {
+      document.getElementById(`${prefix}RackFields`).style.display = 'none';
+      document.getElementById(`${prefix}PalletFields`).style.display = 'none';
     }
-    
-    // Parsuj format regałowy: REGAŁ-RZĄD-RURY
-    const parts = location.split('-');
-    return {
-      type: 'rack',
-      rack: parts[0] || '',
-      row: parts[1] || '',
-      pipe: parts.slice(2).join('-') || '',
-      pallet: ''
-    };
   }
+
+  function updateLocationPreview(prefix) {
+    const preview = document.getElementById(`${prefix}LocationPreview`);
+    const { location, error } = readLocationFromForm(prefix);
+
+    if (error) {
+      preview.innerHTML = `<span class="location-preview-label">⚠️</span>${escapeHtml(error)}`;
+    } else if (location) {
+      preview.innerHTML = `<span class="location-preview-label">Zapisze się jako:</span><strong>${escapeHtml(LocationFormat.describeLocation(location))}</strong>`;
+    } else {
+      preview.innerHTML = '';
+    }
+  }
+
+  ['add', 'edit'].forEach(prefix => {
+    ['MatRack', 'MatRow', 'MatPipe', 'MatPipeTo', 'MatPallet', 'MatSeasonalLocation'].forEach(field => {
+      document.getElementById(`${prefix}${field}`).addEventListener('input', () => updateLocationPreview(prefix));
+    });
+    document.querySelectorAll(`input[name="${prefix}LocationType"]`).forEach(radio => {
+      radio.addEventListener('change', () => updateLocationPreview(prefix));
+    });
+  });
 
   // ==================== DODAWANIE MATY ====================
 
@@ -369,7 +397,9 @@ document.addEventListener("DOMContentLoaded", () => {
     addMatRack.value = '';
     addMatRow.value = '';
     addMatPipe.value = '';
+    addMatPipeTo.value = '';
     addMatPallet.value = '';
+    document.getElementById('addMatSeasonalLocation').value = '';
     addMatSize.value = '';
     addMatQty.value = '1';
     
@@ -377,6 +407,8 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector('input[name="addLocationType"][value="rack"]').checked = true;
     addRackFields.style.display = 'grid';
     addPalletFields.style.display = 'none';
+    setLocationLayout('add', target);
+    updateLocationPreview('add');
     
     openModal(addMatModal);
     setTimeout(() => addMatName.focus(), 100);
@@ -396,18 +428,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     
-    // Buduj lokalizację
-    let location = '';
-    const locationType = document.querySelector('input[name="addLocationType"]:checked').value;
-    
-    if (locationType === 'rack') {
-      location = buildLocationString(
-        addMatRack.value.trim(),
-        addMatRow.value.trim(),
-        addMatPipe.value.trim()
-      );
-    } else {
-      location = addMatPallet.value.trim() || 'PALETA';
+    const { location, error: locationError } = readLocationFromForm('add');
+    if (locationError) {
+      showToast(locationError, 'error');
+      return;
     }
     
     addMatSubmit.disabled = true;
@@ -481,25 +505,30 @@ document.addEventListener("DOMContentLoaded", () => {
     editMatSize.value = mat.size || '';
     editMatQty.value = mat.quantity || 0;
     
-    const parsed = parseLocationString(mat.location);
+    const parsed = LocationFormat.parseLocation(mat.location);
     
-    if (parsed.type === 'pallet') {
+    if (parsed.type === 'other') {
       document.querySelector('input[name="editLocationType"][value="pallet"]').checked = true;
       editRackFields.style.display = 'none';
       editPalletFields.style.display = 'block';
-      editMatPallet.value = parsed.pallet;
+      editMatPallet.value = parsed.text;
       editMatRack.value = '';
       editMatRow.value = '';
       editMatPipe.value = '';
+      editMatPipeTo.value = '';
     } else {
       document.querySelector('input[name="editLocationType"][value="rack"]').checked = true;
       editRackFields.style.display = 'grid';
       editPalletFields.style.display = 'none';
       editMatRack.value = parsed.rack;
       editMatRow.value = parsed.row;
-      editMatPipe.value = parsed.pipe;
+      editMatPipe.value = parsed.pipeFrom;
+      editMatPipeTo.value = parsed.pipeTo;
       editMatPallet.value = '';
     }
+    document.getElementById('editMatSeasonalLocation').value = mat.location === 'Wózek' ? '' : (mat.location || '');
+    setLocationLayout('edit', target);
+    updateLocationPreview('edit');
     
     openModal(editMatModal);
   }
@@ -519,18 +548,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     
-    // Buduj lokalizację
-    let location = '';
-    const locationType = document.querySelector('input[name="editLocationType"]:checked').value;
-    
-    if (locationType === 'rack') {
-      location = buildLocationString(
-        editMatRack.value.trim(),
-        editMatRow.value.trim(),
-        editMatPipe.value.trim()
-      );
-    } else {
-      location = editMatPallet.value.trim() || 'PALETA';
+    const { location, error: locationError } = readLocationFromForm('edit');
+    if (locationError) {
+      showToast(locationError, 'error');
+      return;
     }
     
     editMatSubmit.disabled = true;
@@ -1816,7 +1837,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const newInventory = originalMats.map(mat => ({
         name: mat.name || null,
         mat_number: mat.mat_number || null,
-        location: mat.location || null,
+        location: mat.location ? LocationFormat.normalizeLocation(mat.location) : null,
         size: mat.size || null,
         quantity: mat.quantity || 0,
         status: 'unchecked'
@@ -1974,7 +1995,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const newLogoMats = invMats.map(mat => ({
         name: mat.name,
         mat_number: mat.mat_number,
-        location: mat.location,
+        location: mat.location ? LocationFormat.normalizeLocation(mat.location) : mat.location,
         size: mat.size,
         quantity: mat.quantity
       }));
@@ -2328,50 +2349,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // 🆕 FUNKCJA FORMATUJĄCA LOKACJĘ
   function formatLocation(location) {
     if (!location) return '';
-    
-    // Specjalne lokacje (bez numerów regałów)
-    const specialLocations = ['PALETA', 'REGAŁ', 'MAGAZYN', 'KASA', 'SPEC', 'NIEZNANE', 'POD-MAŁYMI-ŻABKAMI', 'BIURO', 'NOWY'];
-    if (specialLocations.some(special => location.toUpperCase().includes(special))) {
-      return `📦 ${location}`;
-    }
-    
-    // Sprawdź czy to format REGAŁ-RZĄD-RURY (np. "2-1-7,,12" lub "A-1")
-    const parts = location.split('-');
-    
-    if (parts.length >= 3) {
-      // Format: REGAŁ-RZĄD-RURY
-      const shelf = parts[0];
-      const row = parts[1];
-      const pipes = parts.slice(2).join('-'); // reszta to rury
-      
-      // Parsuj rury
-      let pipeText = '';
-      if (pipes.includes(',,')) {
-        // Format zakresu: "7,,12" → "7-12"
-        const rangeParts = pipes.split(',,').filter(p => p);
-        if (rangeParts.length === 2) {
-          pipeText = `${rangeParts[0]}-${rangeParts[1]}`;
-        } else if (rangeParts.length === 1) {
-          pipeText = rangeParts[0];
-        } else {
-          pipeText = pipes.replace(/,,/g, '-');
-        }
-      } else if (pipes.includes(',')) {
-        // Format listy: "3,4,5" → "3, 4, 5"
-        pipeText = pipes.replace(/,/g, ', ');
-      } else {
-        pipeText = pipes;
-      }
-      
-      return `📍 Regał ${shelf} → Rząd ${row} → Rura ${pipeText}`;
-      
-    } else if (parts.length === 2) {
-      // Format: REGAŁ-RZĄD (np. "A-1")
-      return `📍 Regał ${parts[0]} / Rząd ${parts[1]}`;
-    }
-    
-    // Fallback - zwróć oryginalną lokację
-    return `📍 ${location}`;
+    const isRack = LocationFormat.parseLocation(location).type === 'rack';
+    return `${isRack ? '📍' : '📦'} ${escapeHtml(LocationFormat.describeLocation(location))}`;
   }
 
 
@@ -2814,7 +2793,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <tbody>
     `;
     allSeasonalMats.forEach(mat => {
-      printHTML += `<tr><td>${escapeHtml(mat.name)}</td><td>${escapeHtml(mat.location) || '—'}</td><td>${escapeHtml(mat.size) || '—'}</td><td>${mat.quantity}</td><td>${formatAddedDate(mat.created_at) || '—'}</td></tr>`;
+      printHTML += `<tr><td>${escapeHtml(mat.name)}</td><td>${escapeHtml(LocationFormat.describeLocation(mat.location)) || '—'}</td><td>${escapeHtml(mat.size) || '—'}</td><td>${mat.quantity}</td><td>${formatAddedDate(mat.created_at) || '—'}</td></tr>`;
     });
     printHTML += `</tbody></table><div class="print-mats-footer"><p>Dokument wygenerowany automatycznie przez system Elis</p></div>`;
     printOutput.innerHTML = printHTML;
@@ -2888,7 +2867,7 @@ document.addEventListener("DOMContentLoaded", () => {
       headerRow.eachCell((cell) => { cell.border = { top: { style: 'thin', color: { argb: 'FF000000' } }, left: { style: 'thin', color: { argb: 'FF000000' } }, bottom: { style: 'medium', color: { argb: 'FF000000' } }, right: { style: 'thin', color: { argb: 'FF000000' } } }; });
 
       sortedMats.forEach((mat, index) => {
-        const row = worksheet.addRow([mat.name, mat.location || 'Nie określono', mat.size || 'Nie określono', mat.quantity]);
+        const row = worksheet.addRow([mat.name, LocationFormat.describeLocation(mat.location) || 'Nie określono', mat.size || 'Nie określono', mat.quantity]);
         row.height = 22;
         row.font = { name: 'Calibri', size: 10 };
         if (index % 2 === 0) { row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF9FAFB' } }; }
@@ -2959,7 +2938,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <tbody>
     `;
     sortedMats.forEach(mat => {
-      printHTML += `<tr><td>${mat.name}</td><td>${mat.location || '—'}</td><td>${mat.size || '—'}</td><td>${mat.quantity}</td></tr>`;
+      printHTML += `<tr><td>${mat.name}</td><td>${escapeHtml(LocationFormat.describeLocation(mat.location)) || '—'}</td><td>${mat.size || '—'}</td><td>${mat.quantity}</td></tr>`;
     });
     printHTML += `</tbody></table><div class="print-mats-footer"><p>Dokument wygenerowany automatycznie przez system Elis</p></div>`;
     printOutput.innerHTML = printHTML;
@@ -3898,7 +3877,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           
           <div class="archive-item-details">
-            ${item.mat_location ? `<div class="archive-item-detail"><span>📍</span><strong>${item.mat_location}</strong></div>` : ''}
+            ${item.mat_location ? `<div class="archive-item-detail"><span>📍</span><strong>${escapeHtml(LocationFormat.describeLocation(item.mat_location))}</strong></div>` : ''}
             ${item.mat_size ? `<div class="archive-item-detail"><span>📏</span><span>${item.mat_size}</span></div>` : ''}
             <div class="archive-item-detail"><span>⏱️</span><span>Prane: ${durationText} temu}</span></div>
           </div>
@@ -4376,7 +4355,7 @@ document.addEventListener("DOMContentLoaded", () => {
           printHTML += `
             <tr>
               <td><strong>${item.mat_name}</strong></td>
-              <td>${item.mat_location || '—'}</td>
+              <td>${escapeHtml(LocationFormat.describeLocation(item.mat_location)) || '—'}</td>
               <td>${item.mat_size || '—'}</td>
               <td class="text-center"><strong>${item.quantity || 1}</strong></td>
               <td class="text-center">${item.shift || '—'}</td>
@@ -4531,7 +4510,7 @@ document.addEventListener("DOMContentLoaded", () => {
           
           const row = worksheet.addRow([
             item.mat_name,
-            item.mat_location || 'Nie określono',
+            LocationFormat.describeLocation(item.mat_location) || 'Nie określono',
             item.mat_size || 'Nie określono',
             item.quantity || 1,
             item.shift || '-',
