@@ -4386,8 +4386,27 @@ body.dark .btn-add-mat {
 .rack-fields {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 12px;
+}
+
+.location-preview {
+  grid-column: 1 / -1;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(0, 169, 190, 0.08);
+  border: 1px dashed rgba(0, 169, 190, 0.35);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.location-preview:empty {
+  display: none;
+}
+
+.location-preview .location-preview-label {
+  color: var(--muted);
+  margin-right: 6px;
 }
 
 .pallet-fields {
@@ -4423,7 +4442,7 @@ body.dark .btn-add-mat {
   }
   
   .rack-fields {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
   
   .mat-admin-actions {
