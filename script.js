@@ -2789,6 +2789,38 @@ document.addEventListener("DOMContentLoaded", () => {
     seasonalList.appendChild(fragment);
   }
 
+  document.getElementById('printSeasonalBtn').addEventListener('click', () => {
+    if (allSeasonalMats.length === 0) {
+      showToast("Brak mat sezonowych do wydrukowania.", "error");
+      return;
+    }
+    const printDate = new Date().toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const totalQuantity = allSeasonalMats.reduce((sum, mat) => sum + (mat.quantity || 0), 0);
+
+    let printHTML = `
+      <div class="print-mats-header">
+        <img src="icons/icon-192.png" alt="Elis Logo">
+        <div class="title-block">
+          <h1>Lista Mat Logo Sezonowych</h1>
+          <p>Data wydruku: ${printDate}</p>
+        </div>
+      </div>
+      <div class="print-mats-summary">
+        <p><strong>Łączna liczba pozycji:</strong> ${allSeasonalMats.length}</p>
+        <p><strong>Suma wszystkich mat:</strong> ${totalQuantity} szt.</p>
+      </div>
+      <table class="print-mats-table print-seasonal-table">
+        <thead><tr><th>Nazwa</th><th>Lokalizacja</th><th>Rozmiar</th><th>Ilość</th><th>Data dodania</th></tr></thead>
+        <tbody>
+    `;
+    allSeasonalMats.forEach(mat => {
+      printHTML += `<tr><td>${escapeHtml(mat.name)}</td><td>${escapeHtml(mat.location) || '—'}</td><td>${escapeHtml(mat.size) || '—'}</td><td>${mat.quantity}</td><td>${formatAddedDate(mat.created_at) || '—'}</td></tr>`;
+    });
+    printHTML += `</tbody></table><div class="print-mats-footer"><p>Dokument wygenerowany automatycznie przez system Elis</p></div>`;
+    printOutput.innerHTML = printHTML;
+    setTimeout(() => { try { window.print(); } catch (error) { console.error("Błąd drukowania:", error); showToast("Błąd podczas otwierania okna drukowania.", "error"); } }, 100);
+  });
+
   seasonalSearch.addEventListener('input', renderSeasonalMats);
   seasonalSearch.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
