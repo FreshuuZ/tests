@@ -107,8 +107,6 @@ document.addEventListener("DOMContentLoaded", () => {
       adminLoggedSection.style.display = 'block';
       adminModalIcon.textContent = '🔓';
       adminModalTitle.textContent = 'Panel Administratora';
-      // Odśwież stan blokady strony
-      checkSiteLock();
     } else {
       // Pokaż sekcję logowania
       adminLoginSection.style.display = 'block';
@@ -166,6 +164,8 @@ document.addEventListener("DOMContentLoaded", () => {
       // Odśwież listę mat jeśli jesteśmy w widoku mat
       if (currentView === 'mats') {
         renderMats(allLogoMats, matsSearch.value);
+      } else if (currentView === 'seasonal') {
+        renderSeasonalMats();
       }
     } else {
       pinError.style.display = 'flex';
@@ -193,6 +193,8 @@ document.addEventListener("DOMContentLoaded", () => {
       // Odśwież listę mat jeśli jesteśmy w widoku mat
       if (currentView === 'mats') {
         renderMats(allLogoMats, matsSearch.value);
+      } else if (currentView === 'seasonal') {
+        renderSeasonalMats();
       }
     }
   }
@@ -204,6 +206,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Pokaż/ukryj sekcję dodawania maty
     if (adminAddMatSection) {
       adminAddMatSection.style.display = isAdmin ? 'block' : 'none';
+    }
+
+    const seasonalAddMatSection = document.getElementById('seasonalAddMatSection');
+    if (seasonalAddMatSection) {
+      seasonalAddMatSection.style.display = isAdmin ? 'block' : 'none';
     }
     
     // Pokaż przycisk kopiowania zapasów u admina w Liście Mat Logo
@@ -272,284 +279,6 @@ document.addEventListener("DOMContentLoaded", () => {
   adminCloseBtn.addEventListener('click', () => closeModal(adminModal));
   adminLogoutBtn.addEventListener('click', () => logoutAdmin(false));
 
-  // ==================== BLOKADA STRONY (SITE LOCK) ====================
-  let isSiteLocked = false;
-  let siteLockPin = null;
-  let isSiteUnlockedThisSession = false; // sessionStorage flag
-
-  // DOM elements — overlay
-  const siteLockOverlay = document.getElementById('siteLockOverlay');
-  const siteLockPinInput = document.getElementById('siteLockPinInput');
-  const siteLockError = document.getElementById('siteLockError');
-  const siteLockUnlockBtn = document.getElementById('siteLockUnlockBtn');
-  const siteLockTogglePinBtn = document.getElementById('siteLockTogglePin');
-
-  // DOM elements — admin panel
-  const siteLockToggle = document.getElementById('siteLockToggle');
-  const siteLockStatus = document.getElementById('siteLockStatus');
-  const siteLockPinSection = document.getElementById('siteLockPinSection');
-  const siteLockAdminPinInput = document.getElementById('siteLockAdminPinInput');
-  const siteLockSaveBtn = document.getElementById('siteLockSaveBtn');
-  const siteLockSaveBtnText = document.getElementById('siteLockSaveBtnText');
-  const siteLockAdminTogglePinBtn = document.getElementById('siteLockAdminTogglePin');
-
-  // Sprawdź czy sesja była już odblokowana
-  if (sessionStorage.getItem('siteLockUnlocked') === 'true') {
-    isSiteUnlockedThisSession = true;
-  }
-
-  // Pobierz stan blokady z Supabase
-  async function checkSiteLock() {
-    try {
-      const { data, error } = await window.supabase
-        .from('site_lock')
-        .select('*')
-        .eq('id', 1)
-        .single();
-
-      if (error) {
-        console.warn('Nie znaleziono tabeli site_lock — blokada wyłączona:', error.message);
-        isSiteLocked = false;
-        siteLockPin = null;
-        applySiteLockState();
-        return;
-      }
-
-      isSiteLocked = data.is_locked || false;
-      siteLockPin = data.lock_pin || null;
-      applySiteLockState();
-    } catch (err) {
-      console.error('Błąd sprawdzania blokady strony:', err);
-      isSiteLocked = false;
-      applySiteLockState();
-    }
-  }
-
-  // Zastosuj stan blokady (pokaż/ukryj overlay)
-  function applySiteLockState() {
-    if (isSiteLocked && !isSiteUnlockedThisSession) {
-      siteLockOverlay.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-      siteLockPinInput.value = '';
-      siteLockError.style.display = 'none';
-      siteLockPinInput.classList.remove('error');
-      setTimeout(() => siteLockPinInput.focus(), 300);
-    } else {
-      siteLockOverlay.style.display = 'none';
-      document.body.style.overflow = '';
-    }
-    updateSiteLockAdminUI();
-  }
-
-  // Weryfikuj PIN blokady strony
-  function verifySiteLockPin(enteredPin) {
-    return siteLockPin && enteredPin === siteLockPin;
-  }
-
-  // Odblokuj stronę (overlay)
-  async function unlockSite() {
-    const pin = siteLockPinInput.value.trim();
-
-    if (!pin) {
-      siteLockError.style.display = 'flex';
-      siteLockError.querySelector('span').textContent = 'Wprowadź PIN';
-      siteLockPinInput.classList.add('error');
-      return;
-    }
-
-    siteLockUnlockBtn.disabled = true;
-    siteLockUnlockBtn.innerHTML = '<span class="spinner"></span> Sprawdzanie...';
-
-    // Pobierz aktualny PIN z bazy (na wypadek zmiany)
-    try {
-      const { data } = await window.supabase
-        .from('site_lock')
-        .select('lock_pin, is_locked')
-        .eq('id', 1)
-        .single();
-
-      if (data) {
-        siteLockPin = data.lock_pin;
-        isSiteLocked = data.is_locked;
-      }
-
-      // Jeśli blokada została wyłączona w międzyczasie
-      if (!isSiteLocked) {
-        isSiteUnlockedThisSession = true;
-        sessionStorage.setItem('siteLockUnlocked', 'true');
-        applySiteLockState();
-        showToast('🔓 Blokada została wyłączona!', 'success');
-        restoreUnlockBtn();
-        return;
-      }
-
-      if (verifySiteLockPin(pin)) {
-        isSiteUnlockedThisSession = true;
-        sessionStorage.setItem('siteLockUnlocked', 'true');
-        siteLockOverlay.style.display = 'none';
-        document.body.style.overflow = '';
-        showToast('🔓 Strona odblokowana!', 'success');
-      } else {
-        siteLockError.style.display = 'flex';
-        siteLockError.querySelector('span').textContent = 'Nieprawidłowy PIN';
-        siteLockPinInput.classList.add('error');
-        siteLockPinInput.value = '';
-        siteLockPinInput.focus();
-      }
-    } catch (err) {
-      console.error('Błąd weryfikacji PIN blokady:', err);
-      siteLockError.style.display = 'flex';
-      siteLockError.querySelector('span').textContent = 'Błąd połączenia';
-    }
-
-    restoreUnlockBtn();
-  }
-
-  function restoreUnlockBtn() {
-    siteLockUnlockBtn.disabled = false;
-    siteLockUnlockBtn.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2.5" style="width:20px;height:20px;margin-right:8px;">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-        <path d="M7 11V7a5 5 0 0 1 9.9-1" />
-      </svg>
-      Odblokuj
-    `;
-  }
-
-  // Aktualizuj UI admina (toggle, status, pin section)
-  function updateSiteLockAdminUI() {
-    if (!siteLockToggle) return;
-
-    siteLockToggle.checked = isSiteLocked;
-
-    // Status dot & text
-    const dot = siteLockStatus.querySelector('.site-lock-status-dot');
-    const text = siteLockStatus.querySelector('.site-lock-status-text');
-
-    if (isSiteLocked) {
-      dot.className = 'site-lock-status-dot active';
-      text.textContent = 'Blokada aktywna' + (siteLockPin ? ' (PIN ustawiony)' : '');
-      siteLockPinSection.style.display = 'block';
-      siteLockAdminPinInput.value = siteLockPin || '';
-      siteLockAdminPinInput.placeholder = siteLockPin ? 'Zmień PIN...' : 'Ustaw PIN blokady...';
-      siteLockSaveBtnText.textContent = 'Zapisz zmiany';
-      siteLockSaveBtn.className = 'site-lock-save-btn';
-    } else {
-      dot.className = 'site-lock-status-dot inactive';
-      text.textContent = 'Blokada wyłączona';
-      siteLockPinSection.style.display = 'none';
-    }
-  }
-
-  // Zapisz blokadę (admin)
-  async function saveSiteLock() {
-    const wantLocked = siteLockToggle.checked;
-    let newPin = siteLockAdminPinInput.value.trim();
-
-    if (wantLocked) {
-      // Jeśli chcemy włączyć i nie ma PINu — wymagaj
-      if (!newPin && !siteLockPin) {
-        showToast('Ustaw PIN blokady!', 'error');
-        siteLockAdminPinInput.focus();
-        return;
-      }
-      // Jeśli pole puste, zachowaj stary PIN
-      if (!newPin) {
-        newPin = siteLockPin;
-      }
-      if (newPin.length < 3) {
-        showToast('PIN musi mieć minimum 3 znaki!', 'error');
-        siteLockAdminPinInput.focus();
-        return;
-      }
-    }
-
-    siteLockSaveBtn.disabled = true;
-    siteLockSaveBtnText.textContent = 'Zapisywanie...';
-
-    try {
-      const updateData = {
-        is_locked: wantLocked,
-        updated_at: new Date().toISOString()
-      };
-      // Aktualizuj PIN tylko gdy jest wpisany nowy
-      if (wantLocked && newPin) {
-        updateData.lock_pin = newPin;
-      }
-      // Gdy wyłączamy — nie czyścimy PINa, zostaje na przyszłość
-
-      const { error } = await window.supabase
-        .from('site_lock')
-        .update(updateData)
-        .eq('id', 1);
-
-      if (error) throw error;
-
-      isSiteLocked = wantLocked;
-      if (wantLocked && newPin) siteLockPin = newPin;
-
-      applySiteLockState();
-      showToast(wantLocked ? '🔒 Blokada strony aktywowana!' : '🔓 Blokada strony wyłączona!', wantLocked ? 'error' : 'success');
-    } catch (err) {
-      console.error('Błąd zapisywania blokady:', err);
-      showToast('Błąd zapisu: ' + (err.message || 'Nieznany'), 'error');
-      // Cofnij toggle
-      siteLockToggle.checked = isSiteLocked;
-    }
-
-    siteLockSaveBtn.disabled = false;
-    siteLockSaveBtnText.textContent = 'Zapisz zmiany';
-  }
-
-  // ==================== EVENT LISTENERY BLOKADY STRONY ====================
-
-  // Overlay: odblokuj
-  siteLockUnlockBtn?.addEventListener('click', unlockSite);
-
-  siteLockPinInput?.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') unlockSite();
-  });
-
-  siteLockPinInput?.addEventListener('input', () => {
-    siteLockError.style.display = 'none';
-    siteLockPinInput.classList.remove('error');
-  });
-
-  // Overlay: toggle widoczności PINu
-  siteLockTogglePinBtn?.addEventListener('click', () => {
-    const isPassword = siteLockPinInput.type === 'password';
-    siteLockPinInput.type = isPassword ? 'text' : 'password';
-    siteLockTogglePinBtn.classList.toggle('visible', isPassword);
-  });
-
-  // Admin: toggle włącza/wyłącza sekcję PIN
-  siteLockToggle?.addEventListener('change', () => {
-    const wantLocked = siteLockToggle.checked;
-    if (wantLocked) {
-      siteLockPinSection.style.display = 'block';
-      siteLockAdminPinInput.value = siteLockPin || '';
-      siteLockAdminPinInput.placeholder = siteLockPin ? 'Zmień PIN lub zostaw obecny...' : 'Ustaw PIN blokady...';
-      siteLockSaveBtnText.textContent = 'Zapisz i aktywuj blokadę';
-      siteLockSaveBtn.className = 'site-lock-save-btn';
-    } else {
-      // Wyłączanie — pokaż przycisk z innym tekstem
-      siteLockPinSection.style.display = 'block';
-      siteLockSaveBtnText.textContent = 'Wyłącz blokadę';
-      siteLockSaveBtn.className = 'site-lock-save-btn btn-deactivate';
-    }
-  });
-
-  // Admin: zapisz
-  siteLockSaveBtn?.addEventListener('click', saveSiteLock);
-
-  // Admin: toggle widoczności PINu
-  siteLockAdminTogglePinBtn?.addEventListener('click', () => {
-    const isPassword = siteLockAdminPinInput.type === 'password';
-    siteLockAdminPinInput.type = isPassword ? 'text' : 'password';
-    siteLockAdminTogglePinBtn.classList.toggle('visible', isPassword);
-  });
-
   // ==================== OBSŁUGA TYPU LOKALIZACJI ====================
 
   // Toggle dla dodawania
@@ -610,7 +339,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ==================== DODAWANIE MATY ====================
 
-  addNewMatBtn?.addEventListener('click', () => {
+  // 'logo' = główna lista (logo_mats), 'seasonal' = maty sezonowe (seasonal_logo_mats)
+  let matFormTarget = 'logo';
+
+  function getMatTable(target) {
+    return target === 'seasonal' ? 'seasonal_logo_mats' : 'logo_mats';
+  }
+
+  async function refreshMatList(target) {
+    if (target === 'seasonal') {
+      await loadSeasonalMats();
+    } else {
+      allLogoMats = [];
+      const newMats = await fetchAndCacheLogoMats();
+      renderMats(newMats, matsSearch.value);
+    }
+  }
+
+  addNewMatBtn?.addEventListener('click', () => openAddMatModal('logo'));
+  document.getElementById('addSeasonalMatBtn')?.addEventListener('click', () => openAddMatModal('seasonal'));
+
+  function openAddMatModal(target) {
+    matFormTarget = target;
+    addMatModal.querySelector('h3').textContent = target === 'seasonal' ? '➕ Dodaj matę sezonową' : '➕ Dodaj nową matę';
+
     // Reset formularza
     addMatName.value = '';
     addMatNumber.value = '';  // 🆕 DODANE
@@ -628,7 +380,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     openModal(addMatModal);
     setTimeout(() => addMatName.focus(), 100);
-  });
+  }
 
   addMatCancel.addEventListener('click', () => closeModal(addMatModal));
 
@@ -661,6 +413,8 @@ document.addEventListener("DOMContentLoaded", () => {
     addMatSubmit.disabled = true;
     addMatSubmit.innerHTML = '<span class="spinner"></span> Dodawanie...';
     
+    const target = matFormTarget;
+
     try {
       let finalName = name;
       let insertedData = null;
@@ -668,7 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       for (let i = 0; i < 10; i++) {
         const { data, error } = await window.supabase
-          .from('logo_mats')
+          .from(getMatTable(target))
           .insert([{
             name: finalName,
             mat_number: matNumber || null,  // 🆕 DODANE
@@ -699,9 +453,7 @@ document.addEventListener("DOMContentLoaded", () => {
       closeModal(addMatModal);
       
       // Odśwież cache i listę
-      allLogoMats = [];
-      const newMats = await fetchAndCacheLogoMats();
-      renderMats(newMats, matsSearch.value);
+      await refreshMatList(target);
       
     } catch (error) {
       console.error('Błąd dodawania maty:', error);
@@ -721,7 +473,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ==================== EDYCJA MATY ====================
 
-  function openEditMatModal(mat) {
+  function openEditMatModal(mat, target = 'logo') {
+    matFormTarget = target;
     editMatId.value = mat.id;
     editMatName.value = mat.name || '';
     editMatNumber.value = mat.mat_number || '';  // 🆕 DODANE
@@ -783,6 +536,8 @@ document.addEventListener("DOMContentLoaded", () => {
     editMatSubmit.disabled = true;
     editMatSubmit.innerHTML = '<span class="spinner"></span> Zapisywanie...';
     
+    const target = matFormTarget;
+
     try {
       let finalName = name;
       let updateSuccess = false;
@@ -790,7 +545,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       for (let i = 0; i < 10; i++) {
         const { error } = await window.supabase
-          .from('logo_mats')
+          .from(getMatTable(target))
           .update({
             name: finalName,
             mat_number: matNumber || null,  // 🆕 DODANE
@@ -821,9 +576,7 @@ document.addEventListener("DOMContentLoaded", () => {
       closeModal(editMatModal);
       
       // Odśwież cache i listę
-      allLogoMats = [];
-      const newMats = await fetchAndCacheLogoMats();
-      renderMats(newMats, matsSearch.value);
+      await refreshMatList(target);
       
     } catch (error) {
       console.error('Błąd aktualizacji maty:', error);
@@ -843,7 +596,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ==================== USUWANIE MATY ====================
 
-  function openDeleteMatModal(mat) {
+  function openDeleteMatModal(mat, target = 'logo') {
+    matFormTarget = target;
     deleteMatId.value = mat.id;
     deleteMatName.textContent = mat.name;
     openModal(deleteMatModal);
@@ -857,9 +611,11 @@ document.addEventListener("DOMContentLoaded", () => {
     deleteMatConfirm.disabled = true;
     deleteMatConfirm.innerHTML = '<span class="spinner"></span> Usuwanie...';
     
+    const target = matFormTarget;
+
     try {
       const { error } = await window.supabase
-        .from('logo_mats')
+        .from(getMatTable(target))
         .delete()
         .eq('id', id);
       
@@ -869,9 +625,7 @@ document.addEventListener("DOMContentLoaded", () => {
       closeModal(deleteMatModal);
       
       // Odśwież cache i listę
-      allLogoMats = [];
-      const newMats = await fetchAndCacheLogoMats();
-      renderMats(newMats, matsSearch.value);
+      await refreshMatList(target);
       
     } catch (error) {
       console.error('Błąd usuwania maty:', error);
@@ -890,6 +644,7 @@ document.addEventListener("DOMContentLoaded", () => {
     home: document.getElementById('homeView'),
     panel: document.getElementById('panelView'),
     mats: document.getElementById('matsView'),
+    seasonal: document.getElementById('seasonalView'),
     washing: document.getElementById('washingView'),
     archive: document.getElementById('archiveView'), // Przedsionek
     'archive-replacements': document.getElementById('archiveReplacementsView'), // NOWE
@@ -905,6 +660,7 @@ document.addEventListener("DOMContentLoaded", () => {
     'home': null,
     'panel': 'home',
     'mats': 'home',
+    'seasonal': 'mats',
     'washing': 'home',
     'archive': 'home',
     'archive-replacements': 'archive',
@@ -932,6 +688,10 @@ document.addEventListener("DOMContentLoaded", () => {
           const mats = await fetchAndCacheLogoMats();
           renderMats(mats, matsSearch.value);
       })();
+    } else if (viewName === 'seasonal') {
+      headerTitle.textContent = 'Maty Logo Sezonowe';
+      backBtn.style.display = 'flex';
+      loadSeasonalMats();
     } else if (viewName === 'inventory') {
       headerTitle.textContent = 'Inwentaryzacja Mat';
       backBtn.style.display = 'flex';
@@ -1068,15 +828,7 @@ document.addEventListener("DOMContentLoaded", () => {
     wrapper.innerHTML = `
       <button type="button" class="custom-select-trigger placeholder" aria-haspopup="listbox" aria-expanded="false">${placeholder}</button>
       <div class="custom-select-panel" role="listbox">
-        <div class="custom-select-search-container">
-          <input type="search" class="custom-select-search" placeholder="🔍 Szukaj...">
-          <button type="button" class="search-camera-btn" title="Skanuj matę z aparatu / zdjęcia" aria-label="Skanuj matę z aparatu">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-              <circle cx="12" cy="13" r="4"/>
-            </svg>
-          </button>
-        </div>
+        <input type="search" class="custom-select-search" placeholder="🔍 Szukaj...">
         <ul class="custom-select-options"></ul>
       </div>`;
     
@@ -1134,13 +886,6 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         updateOptions: (newOptions) => {
             options = newOptions;
-        },
-        selectValue: (val) => {
-            appState[stateKey] = val;
-            trigger.textContent = val;
-            trigger.classList.remove("placeholder");
-            selectInstance.close();
-            wrapper.dispatchEvent(new Event("change", { bubbles: true }));
         }
     };
     
@@ -1202,7 +947,6 @@ document.addEventListener("DOMContentLoaded", () => {
     wrapper.reset = selectInstance.reset;
     wrapper.close = selectInstance.close;
     wrapper.updateOptions = selectInstance.updateOptions;
-    wrapper.selectInstance = selectInstance;
     return wrapper;
   }
   
@@ -1567,16 +1311,8 @@ document.addEventListener("DOMContentLoaded", () => {
     
     persist(); 
   };
-  const openModal = (modal) => {
-    if (!modal) return;
-    modal.classList.add("active");
-    modal.style.display = "flex";
-  };
-  const closeModal = (modal) => {
-    if (!modal) return;
-    modal.classList.remove("active");
-    modal.style.display = "none";
-  };
+  const openModal = (modal) => modal.style.display = "flex";
+  const closeModal = (modal) => modal.style.display = "none";
 
   function openSimpleEditModal(index) {
     editIndex = index;
@@ -2948,6 +2684,116 @@ document.addEventListener("DOMContentLoaded", () => {
       matsSearch.value = '';
       matsSearch.classList.remove('searching');
       renderMats(allLogoMats, '');
+    }
+  });
+
+  // ==================== MATY LOGO SEZONOWE ====================
+  let allSeasonalMats = [];
+  const seasonalList = document.getElementById('seasonalList');
+  const seasonalSearch = document.getElementById('seasonalSearch');
+  const seasonalCount = document.getElementById('seasonalCount');
+  const seasonalFiltered = document.getElementById('seasonalFiltered');
+
+  async function loadSeasonalMats() {
+    if (allSeasonalMats.length === 0) {
+      seasonalList.innerHTML = `<div class="empty-state"><div class="empty-state-text">Pobieranie danych z bazy...</div></div>`;
+    }
+
+    try {
+      const { data, error } = await window.supabase
+        .from('seasonal_logo_mats')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      allSeasonalMats = data || [];
+      renderSeasonalMats();
+    } catch (error) {
+      console.error('Błąd pobierania mat sezonowych:', error);
+      showToast('Błąd pobierania mat sezonowych.', 'error');
+      seasonalList.innerHTML = `<div class="empty-state error"><div class="empty-state-text">Nie udało się pobrać danych.</div></div>`;
+    }
+  }
+
+  function formatAddedDate(value) {
+    if (!value) return '';
+    const date = new Date(value);
+    if (isNaN(date)) return '';
+    return date.toLocaleString('pl-PL', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  function renderSeasonalMats() {
+    const search = (seasonalSearch.value || '').toLowerCase().trim();
+    const filtered = search
+      ? allSeasonalMats.filter(mat =>
+          (mat.name?.toLowerCase() || '').includes(search) ||
+          (mat.location?.toLowerCase() || '').includes(search) ||
+          (mat.size?.toLowerCase() || '').includes(search) ||
+          (mat.mat_number?.toLowerCase() || '').includes(search))
+      : allSeasonalMats;
+
+    const totalQuantity = allSeasonalMats.reduce((sum, mat) => sum + (mat.quantity || 0), 0);
+    seasonalCount.textContent = `Załadowano: ${allSeasonalMats.length} mat (łącznie: ${totalQuantity} szt.)`;
+    if (search) {
+      const filteredQuantity = filtered.reduce((sum, mat) => sum + (mat.quantity || 0), 0);
+      seasonalFiltered.style.display = 'inline';
+      seasonalFiltered.textContent = `Znaleziono: ${filtered.length} (${filteredQuantity} szt.)`;
+    } else {
+      seasonalFiltered.style.display = 'none';
+    }
+
+    seasonalList.innerHTML = '';
+
+    if (filtered.length === 0) {
+      seasonalList.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-text">
+            ${search ? 'Nie znaleziono mat spełniających kryteria.' : 'Brak mat sezonowych.'}
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+
+    filtered.forEach(mat => {
+      const el = createMatElement(mat);
+
+      const addedAt = formatAddedDate(mat.created_at);
+      if (addedAt) {
+        const dateItem = document.createElement('div');
+        dateItem.className = 'mat-detail-item mat-added-date';
+        dateItem.textContent = `📅 Dodano: ${addedAt}`;
+        el.querySelector('.mat-details').appendChild(dateItem);
+      }
+
+      if (isAdmin) {
+        el.querySelector('.btn-edit-mat')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openEditMatModal(mat, 'seasonal');
+        });
+        el.querySelector('.btn-delete-mat')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openDeleteMatModal(mat, 'seasonal');
+        });
+      }
+
+      fragment.appendChild(el);
+    });
+
+    seasonalList.appendChild(fragment);
+  }
+
+  seasonalSearch.addEventListener('input', renderSeasonalMats);
+  seasonalSearch.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      seasonalSearch.value = '';
+      renderSeasonalMats();
     }
   });
   
@@ -5722,9 +5568,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ==================== INICJALIZACJA ====================
   async function init() {
-    // Sprawdź blokadę strony jako pierwsze
-    await checkSiteLock();
-
     const logoMatsPromise = fetchAndCacheLogoMats();
     
     createCustomSelect(routeSelectWrapper, routesByDay, "— wybierz trasę —", "route", true);
@@ -5763,31 +5606,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(checkReplacementsScheduledReminder, 60000); // Sprawdzaj co minutę
 
     // ==================== REALTIME SUBSCRIPTIONS ====================
-
-    // Realtime: blokada strony
-    const siteLockChannel = window.supabase
-      .channel('site-lock-updates')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'site_lock'
-      }, (payload) => {
-        console.log('🔒 Zmiana blokady strony!', payload);
-        const newData = payload.new;
-        isSiteLocked = newData.is_locked || false;
-        siteLockPin = newData.lock_pin || null;
-
-        if (!isSiteLocked) {
-          // Blokada wyłączona — odblokuj dla wszystkich
-          isSiteUnlockedThisSession = true;
-          sessionStorage.setItem('siteLockUnlocked', 'true');
-        } else if (isSiteLocked && !isSiteUnlockedThisSession) {
-          // Blokada włączona i użytkownik nie odblokował — pokaż overlay
-          sessionStorage.removeItem('siteLockUnlocked');
-        }
-        applySiteLockState();
-      })
-      .subscribe();
 
     const washingChannel = window.supabase
       .channel('washing-updates')
@@ -5948,7 +5766,6 @@ document.addEventListener("DOMContentLoaded", () => {
       window.reportsChannel = reportsChannel;
 
     initPalletSystem();
-    initCameraOCRScanner();
     navigateTo('home');
   }
 
@@ -6591,471 +6408,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ==================== WYSZUKIWANIE MAT PO ZDJĘCIU (OCR / FUZZY MATCH) ====================
-
-  function normalizePolishText(str) {
-    if (!str) return '';
-    return str
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[Łł]/g, 'l')
-      .replace(/[Śś]/g, 's')
-      .replace(/[ŻżŹź]/g, 'z')
-      .replace(/[Ćć]/g, 'c')
-      .replace(/[Ńń]/g, 'n')
-      .replace(/[Óó]/g, 'o')
-      .replace(/[Ąą]/g, 'a')
-      .replace(/[Ęę]/g, 'e')
-      .replace(/[^a-z0-9\s]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
-  function levenshteinDistance(s1, s2) {
-    let track = Array(s2.length + 1).fill(null).map(() => Array(s1.length + 1).fill(null));
-    for (let i = 0; i <= s1.length; i += 1) track[0][i] = i;
-    for (let j = 0; j <= s2.length; j += 1) track[j][0] = j;
-    for (let j = 1; j <= s2.length; j += 1) {
-      for (let i = 1; i <= s1.length; i += 1) {
-        const indicator = s1[i - 1] === s2[j - 1] ? 0 : 1;
-        track[j][i] = Math.min(
-          track[j][i - 1] + 1,
-          track[j - 1][i] + 1,
-          track[j - 1][i - 1] + indicator
-        );
-      }
-    }
-    return track[s2.length][s1.length];
-  }
-
-  function fuzzyStringSimilarity(str1, str2) {
-    const norm1 = normalizePolishText(str1);
-    const norm2 = normalizePolishText(str2);
-    if (!norm1 || !norm2) return 0;
-    if (norm1 === norm2) return 1.0;
-    if (norm1.includes(norm2) || norm2.includes(norm1)) return 0.9;
-    
-    const distance = levenshteinDistance(norm1, norm2);
-    const maxLength = Math.max(norm1.length, norm2.length);
-    if (maxLength === 0) return 1.0;
-    return Math.max(0, 1 - distance / maxLength);
-  }
-
-  function matchMatByOCRText(rawOcrText, matList) {
-    if (!rawOcrText || !matList || matList.length === 0) return [];
-    
-    const normOCR = normalizePolishText(rawOcrText);
-    const numbersFound = rawOcrText.match(/\b\d{3,8}\b/g) || [];
-    const wordsFound = normOCR.split(' ').filter(w => w.length >= 2);
-
-    const results = matList.map(mat => {
-      const matName = mat.name || (typeof mat === 'string' ? mat : '');
-      const matNum = (mat.mat_number || '').toString();
-      const matLoc = mat.location || '';
-      const matSize = mat.size || '';
-      
-      const normName = normalizePolishText(matName);
-      const normLoc = normalizePolishText(matLoc);
-      const normSize = normalizePolishText(matSize);
-
-      let score = 0;
-
-      // 1. Dopasowanie numeru maty (#22799 itp.)
-      if (matNum) {
-        if (rawOcrText.includes(matNum)) {
-          score += 65;
-        } else {
-          numbersFound.forEach(num => {
-            if (num === matNum) score += 55;
-            else if (levenshteinDistance(num, matNum) <= 1) score += 40;
-          });
-        }
-      }
-
-      // 2. Słowa w nazwie maty (np. PALIUM TASEWY, LEXUS)
-      const matWords = normName.split(' ').filter(w => w.length >= 2);
-      let matchedWords = 0;
-
-      matWords.forEach(mWord => {
-        let bestWordSim = 0;
-        wordsFound.forEach(oWord => {
-          const sim = fuzzyStringSimilarity(mWord, oWord);
-          if (sim > bestWordSim) bestWordSim = sim;
-        });
-
-        if (bestWordSim >= 0.75) {
-          matchedWords += bestWordSim;
-        }
-      });
-
-      if (matWords.length > 0) {
-        const wordScore = (matchedWords / matWords.length) * 45;
-        score += wordScore;
-      }
-
-      // 3. Ogólne dopasowanie Levenshtein do pełnej nazwy
-      const fullSim = fuzzyStringSimilarity(normOCR, normName);
-      score += fullSim * 20;
-
-      // 4. Jeśli w tekście OCR znajduje się dokładnie fraza z nazwy
-      if (normOCR.includes(normName) && normName.length > 3) {
-        score += 30;
-      }
-
-      return {
-        mat: mat,
-        score: Math.min(100, Math.round(score)),
-        matchedName: matName,
-        matNumber: matNum
-      };
-    });
-
-    return results
-      .filter(r => r.score >= 18)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10);
-  }
-
-  function initCameraOCRScanner() {
-    const cameraScanModal = document.getElementById('cameraScanModal');
-    const closeCameraScanBtn = document.getElementById('closeCameraScanBtn');
-    const cameraVideo = document.getElementById('cameraVideo');
-    const cameraCanvas = document.getElementById('cameraCanvas');
-    const captureScanBtn = document.getElementById('captureScanBtn');
-    const switchCameraBtn = document.getElementById('switchCameraBtn');
-    const cameraFileInput = document.getElementById('cameraFileInput');
-    const cameraStatusOverlay = document.getElementById('cameraStatusOverlay');
-    const cameraStatusText = document.getElementById('cameraStatusText');
-    const cameraResultsSection = document.getElementById('cameraResultsSection');
-    const cameraMatchesList = document.getElementById('cameraMatchesList');
-    const detectedRawText = document.getElementById('detectedRawText');
-
-    let mediaStream = null;
-    let currentFacingMode = 'environment';
-    let activeTargetInputId = 'matsSearch';
-    let activeTargetSelectWrapper = null;
-
-    // Delegowane zdarzenie kliknięcia przycisku aparatu (działa też w custom selectach)
-    document.addEventListener('click', (e) => {
-      const btn = e.target.closest('.search-camera-btn');
-      if (!btn) return;
-      
-      e.preventDefault();
-      e.stopPropagation();
-
-      const inputId = btn.getAttribute('data-target-input');
-      const customSelectWrapper = btn.closest('.custom-select-wrapper');
-
-      if (customSelectWrapper) {
-        activeTargetSelectWrapper = customSelectWrapper;
-        activeTargetInputId = null;
-      } else if (inputId) {
-        activeTargetInputId = inputId;
-        activeTargetSelectWrapper = null;
-      } else {
-        activeTargetInputId = 'matsSearch';
-        activeTargetSelectWrapper = null;
-      }
-
-      openScannerModal();
-    });
-
-    async function openScannerModal() {
-      if (!cameraScanModal) return;
-      cameraResultsSection.style.display = 'none';
-      cameraMatchesList.innerHTML = '';
-      detectedRawText.textContent = '';
-      openModal(cameraScanModal);
-      await startCameraStream();
-    }
-
-    function closeScannerModal() {
-      stopCameraStream();
-      if (cameraScanModal) closeModal(cameraScanModal);
-    }
-
-    if (closeCameraScanBtn) {
-      closeCameraScanBtn.addEventListener('click', closeScannerModal);
-    }
-
-    async function startCameraStream() {
-      stopCameraStream();
-
-      // Wyczyść stary fallback
-      const oldFallback = document.getElementById('cameraNoStreamFallback');
-      if (oldFallback) oldFallback.remove();
-
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        showNoStreamFallback("Aparat na żywo wymaga połączenia HTTPS. Użyj opcji 'Ze zdjęcia'.");
-        return;
-      }
-
-      let stream = null;
-      let lastError = null;
-      const modesToTry = [currentFacingMode, currentFacingMode === 'environment' ? 'user' : 'environment'];
-
-      // Próba 1: Idealna rozdzielczość i tryb aparatu
-      for (const mode of modesToTry) {
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-              facingMode: { ideal: mode },
-              width: { ideal: 1280 },
-              height: { ideal: 720 }
-            }
-          });
-          if (stream) {
-            currentFacingMode = mode;
-            break;
-          }
-        } catch (err) {
-          lastError = err;
-        }
-      }
-
-      // Próba 2: Sam tryb aparatu
-      if (!stream) {
-        for (const mode of modesToTry) {
-          try {
-            stream = await navigator.mediaDevices.getUserMedia({
-              video: { facingMode: mode }
-            });
-            if (stream) {
-              currentFacingMode = mode;
-              break;
-            }
-          } catch (err) {
-            lastError = err;
-          }
-        }
-      }
-
-      // Próba 3: Dowolne wideo
-      if (!stream) {
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        } catch (err) {
-          lastError = err;
-        }
-      }
-
-      if (stream) {
-        mediaStream = stream;
-        if (cameraVideo) {
-          cameraVideo.srcObject = mediaStream;
-          cameraVideo.setAttribute('playsinline', 'true');
-          cameraVideo.setAttribute('autoplay', 'true');
-          cameraVideo.setAttribute('muted', 'true');
-          try {
-            await cameraVideo.play();
-          } catch (e) {
-            console.warn("Wideo play error:", e);
-          }
-        }
-      } else {
-        console.warn("Aparat niedostępny lub brak uprawnień:", lastError);
-        showNoStreamFallback("Nie udało się uzyskać dostępu do kamery na żywo. Wybierz zdjęcie z pliku.");
-      }
-    }
-
-    function showNoStreamFallback(msg) {
-      const container = document.querySelector('.camera-viewport-container');
-      if (!container) return;
-      
-      const fallback = document.createElement('div');
-      fallback.id = 'cameraNoStreamFallback';
-      fallback.style.cssText = `
-        position: absolute; inset: 0; background: rgba(13, 17, 23, 0.92);
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        padding: 20px; text-align: center; color: #fff; gap: 14px; z-index: 8;
-      `;
-      fallback.innerHTML = `
-        <span style="font-size: 2.2rem;">📷</span>
-        <p style="margin: 0; font-size: 0.9rem; color: var(--muted); line-height: 1.4;">${escapeHtml(msg)}</p>
-        <button type="button" class="btn-primary" id="fallbackPickFileBtn" style="padding: 10px 20px; font-size: 0.95rem;">
-          📁 Wybierz zdjęcie / Aparat
-        </button>
-      `;
-      container.appendChild(fallback);
-
-      document.getElementById('fallbackPickFileBtn')?.addEventListener('click', () => {
-        cameraFileInput?.click();
-      });
-    }
-
-    function stopCameraStream() {
-      if (mediaStream) {
-        mediaStream.getTracks().forEach(track => track.stop());
-        mediaStream = null;
-      }
-      if (cameraVideo) {
-        cameraVideo.srcObject = null;
-      }
-    }
-
-    if (switchCameraBtn) {
-      switchCameraBtn.addEventListener('click', async () => {
-        currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
-        await startCameraStream();
-      });
-    }
-
-    if (cameraFileInput) {
-      cameraFileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          const img = new Image();
-          img.onload = () => processImageForOCR(img);
-          img.src = evt.target.result;
-        };
-        reader.readAsDataURL(file);
-        cameraFileInput.value = '';
-      });
-    }
-
-    if (captureScanBtn) {
-      captureScanBtn.addEventListener('click', () => {
-        if (!cameraVideo || !cameraVideo.videoWidth) {
-          showToast("Aparat nie jest aktywny. Wybierz zdjęcie z pliku.", "error");
-          return;
-        }
-        cameraCanvas.width = cameraVideo.videoWidth;
-        cameraCanvas.height = cameraVideo.videoHeight;
-        const ctx = cameraCanvas.getContext('2d');
-        ctx.drawImage(cameraVideo, 0, 0, cameraCanvas.width, cameraCanvas.height);
-        
-        processImageForOCR(cameraCanvas);
-      });
-    }
-
-    async function processImageForOCR(imageSource) {
-      cameraStatusOverlay.style.display = 'flex';
-      cameraStatusText.textContent = 'Przetwarzanie zdjęcia...';
-
-      try {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = imageSource.width || imageSource.videoWidth || 800;
-        canvas.height = imageSource.height || imageSource.videoHeight || 600;
-        ctx.drawImage(imageSource, 0, 0, canvas.width, canvas.height);
-
-        // Preprocessing do wyostrzenia tekstu
-        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const d = imgData.data;
-        for (let i = 0; i < d.length; i += 4) {
-          const avg = (d[i] + d[i + 1] + d[i + 2]) / 3;
-          const factor = 1.5;
-          let val = factor * (avg - 128) + 128;
-          d[i] = d[i + 1] = d[i + 2] = Math.max(0, Math.min(255, val));
-        }
-        ctx.putImageData(imgData, 0, 0);
-
-        let qrCodeResult = null;
-        if (window.jsQR) {
-          cameraStatusText.textContent = 'Szukanie kodu QR / kreskowego...';
-          const code = window.jsQR(imgData.data, imgData.width, imgData.height);
-          if (code && code.data) {
-            qrCodeResult = code.data;
-          }
-        }
-
-        let detectedText = qrCodeResult || '';
-
-        if (!qrCodeResult && window.Tesseract) {
-          cameraStatusText.textContent = 'Inicjalizacja OCR...';
-          const result = await window.Tesseract.recognize(
-            canvas,
-            'pol+eng',
-            {
-              logger: m => {
-                if (m.status === 'recognizing text') {
-                  const pct = Math.round((m.progress || 0) * 100);
-                  cameraStatusText.textContent = `Odczytywanie tekstu... ${pct}%`;
-                }
-              }
-            }
-          );
-          detectedText = result.data.text || '';
-        }
-
-        let matListToSearch = [];
-        if (activeTargetInputId === 'inventorySearch') {
-          matListToSearch = allInventoryMats.length > 0 ? allInventoryMats : (window.logoMatsData || []);
-        } else {
-          matListToSearch = (allLogoMats && allLogoMats.length > 0) ? allLogoMats : (window.logoMatsData || []);
-        }
-
-        const matches = matchMatByOCRText(detectedText, matListToSearch);
-        renderOCRMatches(matches, detectedText);
-
-      } catch (err) {
-        console.error("Błąd skanera OCR:", err);
-        showToast("Nie udało się rozpoznać tekstu: " + (err.message || err), "error");
-      } finally {
-        cameraStatusOverlay.style.display = 'none';
-      }
-    }
-
-    function renderOCRMatches(matches, rawText) {
-      cameraResultsSection.style.display = 'flex';
-      detectedRawText.textContent = rawText.replace(/\s+/g, ' ').trim() || 'Brak czytelnego tekstu';
-      cameraMatchesList.innerHTML = '';
-
-      if (!matches || matches.length === 0) {
-        cameraMatchesList.innerHTML = `
-          <div style="text-align: center; padding: 16px; color: var(--muted); font-size: 0.9rem;">
-            Nie znaleziono dopasowania w bazie mat.<br>Upewnij się, że napis lub numer na macie jest wyraźny.
-          </div>
-        `;
-        return;
-      }
-
-      matches.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'camera-match-card';
-        const numberInfo = item.matNumber ? `#${item.matNumber}` : '';
-        const locInfo = item.mat.location ? ` | ${item.mat.location}` : '';
-        const sizeInfo = item.mat.size ? ` | ${item.mat.size}` : '';
-
-        card.innerHTML = `
-          <div class="camera-match-info">
-            <span class="camera-match-title">${escapeHtml(item.matchedName)}</span>
-            <span class="camera-match-sub">${numberInfo}${locInfo}${sizeInfo}</span>
-          </div>
-          <div class="camera-match-score">${item.score}% dopasowania</div>
-        `;
-
-        card.addEventListener('click', () => {
-          selectMatchedMat(item.mat);
-        });
-
-        cameraMatchesList.appendChild(card);
-      });
-    }
-
-    function selectMatchedMat(mat) {
-      const matName = mat.name || (typeof mat === 'string' ? mat : '');
-
-      if (activeTargetSelectWrapper && activeTargetSelectWrapper.selectInstance) {
-        activeTargetSelectWrapper.selectInstance.selectValue(matName);
-      } else if (activeTargetInputId) {
-        const targetInput = document.getElementById(activeTargetInputId);
-        if (targetInput) {
-          targetInput.value = matName;
-          targetInput.dispatchEvent(new Event('input', { bubbles: true }));
-          targetInput.focus();
-        }
-      }
-
-      closeScannerModal();
-      showToast(`Znaleziono matę: ${matName}`, "success");
-    }
-  }
-
   init();
 
 });
-
