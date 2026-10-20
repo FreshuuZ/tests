@@ -402,9 +402,17 @@ h3, h4 {
 }
 .card-header { 
   display: flex; 
+  flex-wrap: wrap;
+  gap: 12px;
   justify-content: space-between; 
   align-items: center; 
   margin-bottom: 16px;
+}
+
+@media (min-width: 769px) {
+  .card-header > h2 {
+    flex-shrink: 0;
+  }
 }
 
 /* --- WYSZUKIWARKA MAT --- */
@@ -5176,4 +5184,949 @@ body.dark .mat-number-badge {
   margin: 4px 0;
   font-size: 0.9rem;
   color: var(--text);
+}
+
+/* ==================== WYBÓR MOTYWU ==================== */
+.theme-menu-wrapper {
+  position: relative;
+}
+
+.icon-pumpkin {
+  transform: rotate(90deg) scale(0);
+  opacity: 0;
+}
+
+.theme-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 220px;
+  padding: 8px;
+  background: var(--dropdown-bg);
+  border: 1px solid var(--dropdown-border);
+  border-radius: 14px;
+  box-shadow: var(--dropdown-shadow);
+  z-index: 1100;
+}
+
+.theme-menu.open {
+  display: block;
+  animation: themeMenuIn 0.18s ease;
+}
+
+@keyframes themeMenuIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.theme-menu-title {
+  padding: 6px 10px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.theme-option:hover {
+  background: rgba(0, 169, 190, 0.1);
+}
+
+.theme-option.active {
+  background: rgba(0, 169, 190, 0.14);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.theme-option-icon {
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+}
+
+.theme-option-label small {
+  margin-left: 4px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.theme-option-check {
+  margin-left: auto;
+  opacity: 0;
+}
+
+.theme-option.active .theme-option-check {
+  opacity: 1;
+}
+
+.halloween-footer-pumpkin {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .theme-menu {
+    min-width: 0;
+    width: min(240px, calc(100vw - 24px));
+  }
+}
+
+/* ==================== MOTYW HALLOWEEN (okresowy, do 30.11.2026) ==================== */
+/* Pomarańczowe odpowiedniki turkusowych kolorów – działają tylko przy body.halloween */
+body.halloween {
+  --primary: #ff8a1f;
+  --primary-hover: #ff8a1f;
+  --border-gradient: linear-gradient(135deg, rgba(255, 138, 31,0.3), rgba(255,71,87,0.3));
+}
+
+body.halloween .background-aurora {
+  background: radial-gradient(circle at 10% 20%, #ff8a1f 0%, transparent 25%), 
+              radial-gradient(circle at 80% 30%, #e30613 0%, transparent 20%), 
+              radial-gradient(circle at 90% 80%, #c2410c 0%, transparent 25%);
+}
+
+body.halloween .app-header {
+  background: linear-gradient(135deg, rgba(255, 138, 31, 0.08) 0%, rgba(227, 6, 19, 0.05) 100%), var(--bg-card);
+  border-image: linear-gradient(90deg, rgba(255, 138, 31,0.3), rgba(227,6,19,0.3)) 1;
+}
+
+body.halloween .app-header {
+  background: linear-gradient(135deg, rgba(255, 138, 31, 0.12) 0%, rgba(255, 71, 87, 0.08) 100%), var(--bg-card);
+}
+
+body.halloween .back-btn {
+  background: rgba(255, 138, 31, 0.1);
+  border: 2px solid rgba(255, 138, 31, 0.3);
+}
+
+body.halloween .back-btn:hover {
+  background: rgba(255, 138, 31, 0.2);
+}
+
+body.halloween .brand-logo {
+  box-shadow: 0 4px 12px rgba(255, 138, 31, 0.15),
+              inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 138, 31, 0.1);
+}
+
+body.halloween .brand-logo:hover {
+  box-shadow: 0 6px 16px rgba(255, 138, 31, 0.25),
+              inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+body.halloween .brand-logo {
+  box-shadow: 0 4px 12px rgba(255, 138, 31, 0.2);
+}
+
+body.halloween .brand-title {
+  background: linear-gradient(135deg, #ff8a1f 0%, #ff6b7a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+body.halloween .theme-toggle {
+  background: rgba(255, 138, 31, 0.08);
+  border: 2px solid rgba(255, 138, 31, 0.2);
+}
+
+body.halloween .theme-toggle:hover {
+  background: rgba(255, 138, 31, 0.15);
+  box-shadow: 0 6px 20px rgba(255, 138, 31, 0.25);
+}
+
+body.halloween .theme-toggle {
+  background: rgba(255, 138, 31, 0.12);
+  border-color: rgba(255, 138, 31, 0.3);
+}
+
+body.halloween .theme-toggle:hover {
+  background: rgba(255, 138, 31, 0.2);
+}
+
+body.halloween .home-tile::before {
+  background: linear-gradient(135deg, rgba(255, 138, 31,0.05) 0%, rgba(227,6,19,0.05) 100%);
+}
+
+body.halloween .home-tile:hover {
+  box-shadow: 0 12px 40px rgba(255, 138, 31, 0.2);
+}
+
+body.halloween .home-tile:hover .home-tile-icon {
+  box-shadow: 0 8px 24px rgba(255, 138, 31, 0.4);
+}
+
+body.halloween .search-input:focus {
+  box-shadow: 0 0 0 3px rgba(255, 138, 31, 0.1);
+}
+
+body.halloween .btn-print-mats {
+  background: rgba(255, 138, 31, 0.1);
+  border: 2px solid rgba(255, 138, 31, 0.3);
+}
+
+body.halloween .btn-print-mats:hover {
+  background: rgba(255, 138, 31, 0.2);
+  box-shadow: 0 4px 12px rgba(255, 138, 31, 0.2);
+}
+
+body.halloween .btn-print-mats {
+  background: rgba(255, 138, 31, 0.12);
+  border-color: rgba(255, 138, 31, 0.3);
+}
+
+body.halloween .btn-print-mats:hover {
+  background: rgba(255, 138, 31, 0.2);
+}
+
+body.halloween .mat-item:hover {
+  box-shadow: 0 4px 16px rgba(255, 138, 31, 0.1);
+}
+
+body.halloween .mat-qty-badge {
+  background: rgba(255, 138, 31, 0.12);
+  border: 1px solid rgba(255, 138, 31, 0.25);
+}
+
+body.halloween .custom-select-wrapper.open .custom-select-trigger,
+body.halloween .custom-select-trigger:hover {
+  background: rgba(255, 138, 31, 0.03);
+}
+
+body.halloween .custom-select-wrapper.open .custom-select-trigger {
+  box-shadow: 0 0 0 3px rgba(255, 138, 31, 0.1);
+}
+
+body.halloween .custom-select-search:focus {
+  background: rgba(255, 138, 31, 0.06);
+}
+
+body.halloween .custom-select-options::-webkit-scrollbar-thumb {
+  background: rgba(255, 138, 31, 0.4);
+}
+
+body.halloween .custom-select-options::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 138, 31, 0.6);
+}
+
+body.halloween .custom-select-options li:hover {
+  background-color: rgba(255, 138, 31, 0.1);
+}
+
+body.halloween .custom-select-options li:hover {
+  background-color: rgba(255, 138, 31, 0.15);
+}
+
+body.halloween input[type="text"]:focus,
+body.halloween input[type="number"]:focus {
+  box-shadow: 0 0 0 3px rgba(255, 138, 31, 0.1);
+}
+
+body.halloween .temp-alt-item {
+  background: rgba(255, 138, 31, 0.05);
+  border: 1px solid rgba(255, 138, 31, 0.15);
+}
+
+body.halloween .temp-alt-item {
+  background: rgba(255, 138, 31, 0.08);
+  border-color: rgba(255, 138, 31, 0.2);
+}
+
+body.halloween .btn-primary {
+  box-shadow: 0 4px 12px -2px rgba(255, 138, 31,0.4);
+}
+
+body.halloween .btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 16px -2px rgba(255, 138, 31,0.5);
+}
+
+body.halloween .action-btn:hover {
+  background: rgba(255, 138, 31, 0.05);
+  box-shadow: 0 8px 20px rgba(255, 138, 31, 0.15);
+}
+
+body.halloween .action-btn.selected {
+  background: rgba(255, 138, 31, 0.1);
+}
+
+body.halloween .action-btn:hover {
+  background: rgba(255, 138, 31, 0.08);
+}
+
+body.halloween .change-addition {
+  background: rgba(255, 138, 31, 0.03) !important;
+  border: 1px solid rgba(255, 138, 31, 0.2);
+}
+
+body.halloween .change-addition {
+  background: rgba(255, 138, 31, 0.05) !important;
+  border-color: rgba(255, 138, 31, 0.25);
+}
+
+body.halloween .change-addition-badge {
+  background: rgba(255, 138, 31, 0.12);
+  border: 1px solid rgba(255, 138, 31, 0.25);
+}
+
+body.halloween .change-addition-badge {
+  background: rgba(255, 138, 31, 0.15);
+  border-color: rgba(255, 138, 31, 0.3);
+}
+
+body.halloween .route-header:hover {
+  background-color: rgba(255, 138, 31,0.04);
+}
+
+body.halloween .route-header:hover {
+  background-color: rgba(255, 138, 31,0.06);
+}
+
+body.halloween .copy-route-btn:hover,
+body.halloween .print-route-btn:hover {
+  background-color: rgba(255, 138, 31, 0.1);
+}
+
+body.halloween .badge {
+  background: rgba(255, 138, 31,0.1);
+  border: 1px solid rgba(255, 138, 31,0.2);
+}
+
+body.halloween .badge {
+  background: rgba(255, 138, 31,0.12);
+  border-color: rgba(255, 138, 31,0.25);
+}
+
+body.halloween .multi-alternatives-list li {
+  background: rgba(255, 138, 31, 0.05);
+  border: 1px solid rgba(255, 138, 31, 0.12);
+}
+
+body.halloween .multi-alternatives-list li {
+  background: rgba(255, 138, 31, 0.08);
+  border-color: rgba(255, 138, 31, 0.15);
+}
+
+body.halloween #editAdvChangeDetails {
+  background: rgba(255, 138, 31,0.05);
+  border: 1px solid rgba(255, 138, 31,0.15);
+}
+
+body.halloween #editAdvChangeDetails {
+  background: rgba(255, 138, 31,0.08);
+  border-color: rgba(255, 138, 31,0.2);
+}
+
+body.halloween .toast.success {
+  background: rgba(255, 138, 31,0.95);
+}
+
+body.halloween .mode-option:hover {
+  background: rgba(255, 138, 31, 0.03);
+}
+
+body.halloween .mode-option:has(input:checked) {
+  background: rgba(255, 138, 31, 0.08);
+}
+
+body.halloween .distribute-intro {
+  background: linear-gradient(135deg, rgba(255, 138, 31, 0.05), rgba(227, 6, 19, 0.03));
+}
+
+body.halloween .distribute-header-card {
+  box-shadow: 0 4px 12px rgba(255, 138, 31, 0.3);
+}
+
+body.halloween .distribute-progress-fill {
+  box-shadow: 0 0 10px rgba(255, 138, 31, 0.5);
+}
+
+body.halloween .distribute-add-section {
+  background: rgba(255, 138, 31, 0.04);
+  border: 2px dashed rgba(255, 138, 31, 0.2);
+}
+
+body.halloween .btn-add-client:hover {
+  box-shadow: 0 4px 12px rgba(255, 138, 31, 0.3);
+}
+
+body.halloween .distribute-summary {
+  background: linear-gradient(135deg, rgba(255, 138, 31, 0.08), rgba(227, 6, 19, 0.05));
+}
+
+body.halloween .distribute-header-card {
+  box-shadow: 0 4px 12px rgba(255, 138, 31, 0.3);
+}
+
+body.halloween .distribute-add-section {
+  background: rgba(255, 138, 31, 0.06);
+  border-color: rgba(255, 138, 31, 0.2);
+}
+
+body.halloween .temp-alt-item.just-added {
+  background: rgba(255, 138, 31, 0.12);
+}
+
+body.halloween .temp-alt-item.just-added {
+  background: rgba(255, 138, 31, 0.15);
+}
+
+body.halloween .shift-info-card {
+  background: linear-gradient(135deg, rgba(255, 138, 31, 0.08), rgba(227, 6, 19, 0.05));
+}
+
+body.halloween .shift-info-card.active {
+  background: linear-gradient(135deg, rgba(255, 138, 31, 0.12), rgba(255, 138, 31, 0.08));
+}
+
+body.halloween .washing-item:hover {
+  box-shadow: 0 4px 16px rgba(255, 138, 31, 0.1);
+}
+
+body.halloween .washing-item-shift {
+  background: rgba(255, 138, 31, 0.12);
+  border: 1px solid rgba(255, 138, 31, 0.25);
+}
+
+body.halloween .washing-item-shift {
+  background: rgba(255, 138, 31, 0.15);
+  border-color: rgba(255, 138, 31, 0.3);
+}
+
+body.halloween .washing-item-qty-badge {
+  background: rgba(255, 138, 31, 0.12);
+  border: 1px solid rgba(255, 138, 31, 0.25);
+}
+
+body.halloween .washing-item-qty-badge {
+  background: rgba(255, 138, 31, 0.15);
+  border-color: rgba(255, 138, 31, 0.3);
+}
+
+body.halloween .stat-card {
+  box-shadow: 0 4px 12px rgba(255, 138, 31, 0.2);
+}
+
+body.halloween .stat-card:nth-child(1) {
+  background: linear-gradient(135deg, #ff8a1f 0%, #008299 100%);
+}
+
+body.halloween .dark .stat-card {
+  box-shadow: 0 4px 12px rgba(255, 138, 31, 0.3);
+}
+
+body.halloween .archive-time-left {
+  background: rgba(255, 138, 31, 0.1);
+  border: 1px solid rgba(255, 138, 31, 0.2);
+}
+
+body.halloween .archive-time-left {
+  background: rgba(255, 138, 31, 0.15);
+  border-color: rgba(255, 138, 31, 0.3);
+}
+
+body.halloween .archive-route-item:hover {
+  box-shadow: 0 4px 16px rgba(255, 138, 31, 0.1);
+}
+
+body.halloween .archive-route-badge {
+  background: rgba(255, 138, 31, 0.12);
+  border: 1px solid rgba(255, 138, 31, 0.25);
+}
+
+body.halloween .archive-route-badge {
+  background: rgba(255, 138, 31, 0.15);
+  border-color: rgba(255, 138, 31, 0.3);
+}
+
+body.halloween .archive-change-item {
+  border-left: 3px solid rgba(255, 138, 31, 0.3);
+}
+
+body.halloween .archive-change-item.addition {
+  background: rgba(255, 138, 31, 0.05);
+}
+
+body.halloween .archive-change-item.addition {
+  background: rgba(255, 138, 31, 0.08);
+}
+
+body.halloween .pallet-count-display {
+  background: linear-gradient(135deg, rgba(255, 138, 31, 0.08), rgba(227, 6, 19, 0.05));
+  border: 2px solid rgba(255, 138, 31, 0.2);
+}
+
+body.halloween .pallet-count-display:hover {
+  box-shadow: 0 4px 12px rgba(255, 138, 31, 0.15);
+}
+
+body.halloween .pallet-count-display {
+  background: linear-gradient(135deg, rgba(255, 138, 31, 0.1), rgba(255, 71, 87, 0.06));
+  border-color: rgba(255, 138, 31, 0.25);
+}
+
+@media (max-width: 768px) {
+  body.halloween .print-archive-summary {
+    border-left: 4px solid #ff8a1f;
+  }
+}
+
+@media (max-width: 768px) {
+  body.halloween .print-summary-value {
+    color: #ff8a1f;
+  }
+}
+
+@media (max-width: 768px) {
+  body.halloween .print-archive-date-header {
+    border-left: 4px solid #ff8a1f;
+  }
+}
+
+@media (max-width: 768px) {
+  body.halloween .print-archive-date-badge {
+    background: #ff8a1f;
+  }
+}
+
+body.halloween .mat-form-group input:focus {
+  box-shadow: 0 0 0 3px rgba(255, 138, 31, 0.1);
+}
+
+body.halloween .location-type-option:hover .location-type-content {
+  background: rgba(255, 138, 31, 0.03);
+}
+
+body.halloween .location-type-option input:checked + .location-type-content {
+  background: rgba(255, 138, 31, 0.08);
+}
+
+body.halloween .location-preview {
+  background: rgba(255, 138, 31, 0.08);
+  border: 1px dashed rgba(255, 138, 31, 0.35);
+}
+
+body.halloween .location-type-option input:checked + .location-type-content {
+  background: rgba(255, 138, 31, 0.12);
+}
+
+body.halloween .load-more-spinner {
+  border: 3px solid rgba(255, 138, 31, 0.2);
+}
+
+body.halloween .search-input.searching {
+  background: rgba(255, 138, 31, 0.03);
+}
+
+body.halloween .mat-item-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-card) 0%,
+    rgba(255, 138, 31, 0.05) 50%,
+    var(--bg-card) 100%
+  );
+}
+
+body.halloween .inventory-qty-control button:hover {
+  background: rgba(255, 138, 31, 0.1);
+}
+
+body.halloween .reports-tab.active {
+  box-shadow: 0 2px 8px rgba(255, 138, 31, 0.3);
+}
+
+body.halloween .reports-tab:not(.active):hover {
+  background: rgba(255, 138, 31, 0.1);
+}
+
+body.halloween .reports-tab:not(.active) .tab-badge {
+  background: rgba(255, 138, 31, 0.15);
+}
+
+body.halloween .report-type-btn.active {
+  background: rgba(255, 138, 31, 0.1);
+}
+
+body.halloween .quick-action-btn:hover {
+  background: rgba(255, 138, 31, 0.1);
+}
+
+body.halloween .theme-option:hover {
+  background: rgba(255, 138, 31, 0.1);
+}
+
+body.halloween .theme-option.active {
+  background: rgba(255, 138, 31, 0.14);
+}
+
+/* --- Kolory motywu (nadpisują ciemny motyw) --- */
+body.halloween {
+  --primary: #ff8a1f;
+  --primary-hover: #ff9f45;
+  --text: #f5efe6;
+  --muted: #b3a6c4;
+  --bg-card: rgba(33, 21, 46, 0.88);
+  --bg-app: #130b1c;
+  --border-color: rgba(255, 138, 31, 0.14);
+  --border-gradient: linear-gradient(135deg, rgba(255, 138, 31, 0.35), rgba(168, 85, 247, 0.35));
+  --dropdown-bg: #241730;
+  --dropdown-border: rgba(255, 138, 31, 0.28);
+}
+
+body.halloween .background-aurora {
+  background: radial-gradient(circle at 12% 18%, #ff8a1f 0%, transparent 25%),
+              radial-gradient(circle at 82% 28%, #7e22ce 0%, transparent 24%),
+              radial-gradient(circle at 88% 82%, #c2410c 0%, transparent 25%);
+  opacity: 0.22;
+}
+
+body.halloween .app-header {
+  background: linear-gradient(135deg, rgba(255, 138, 31, 0.14) 0%, rgba(168, 85, 247, 0.12) 100%), var(--bg-card);
+  border-image: linear-gradient(90deg, rgba(255, 138, 31, 0.5), rgba(168, 85, 247, 0.5)) 1;
+}
+
+/* Gradienty dekoracyjne – czerwień przycisków usuwania zostaje bez zmian */
+body.halloween .brand-title,
+body.halloween .home-welcome {
+  background: linear-gradient(135deg, #ffb347 0%, #ff8a1f 45%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+body.halloween .home-tile-icon,
+body.halloween .distribute-header-card {
+  background: linear-gradient(135deg, #ff8a1f 0%, #9333ea 100%);
+}
+
+body.halloween .app-footer::before {
+  background: linear-gradient(90deg, transparent, #ff8a1f, #a855f7, transparent);
+}
+
+body.halloween .distribute-progress-fill {
+  background: linear-gradient(90deg, #ff8a1f, #a855f7);
+}
+
+body.halloween .washing-item::before,
+body.halloween .archive-route-item::before {
+  background: linear-gradient(180deg, #ff8a1f, #a855f7);
+}
+
+/* Ikona przycisku motywu */
+body.halloween .icon-moon { transform: rotate(-90deg) scale(0); opacity: 0; }
+body.halloween .icon-pumpkin { transform: rotate(0) scale(1); opacity: 1; }
+
+/* --- Migające lampki pod nagłówkiem --- */
+body.halloween .app-header::before,
+body.halloween .app-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -9px;
+  height: 10px;
+  pointer-events: none;
+  background-repeat: repeat-x;
+  background-size: 44px 10px;
+}
+
+body.halloween .app-header::before {
+  background-image: radial-gradient(circle at 11px 5px, #ffb347 0 3px, rgba(255, 138, 31, 0.45) 4px, transparent 6px);
+  animation: hw-twinkle 1.8s ease-in-out infinite alternate;
+}
+
+body.halloween .app-header::after {
+  background-image: radial-gradient(circle at 33px 5px, #c084fc 0 3px, rgba(168, 85, 247, 0.45) 4px, transparent 6px);
+  animation: hw-twinkle 1.8s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes hw-twinkle {
+  from { opacity: 0.25; }
+  to { opacity: 1; }
+}
+
+/* --- Warstwy dekoracji (nigdy nie przechwytują kliknięć) --- */
+.hw-bg,
+.hw-overlay {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hw-bg *,
+.hw-overlay * {
+  pointer-events: none;
+}
+
+.hw-bg { z-index: -1; }
+.hw-overlay { z-index: 999; }
+
+.hw-bg svg,
+.hw-overlay svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hw-stars {
+  position: absolute;
+  inset: 0 0 45% 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 8% 22%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 18% 64%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 31% 12%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 46% 40%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 59% 18%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 67% 58%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 74% 8%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 88% 46%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 95% 26%, #fff 50%, transparent 51%);
+  opacity: 0.5;
+  animation: hw-twinkle 4s ease-in-out infinite alternate;
+}
+
+.hw-moon {
+  position: absolute;
+  top: 96px;
+  right: 6%;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff7d6 0%, #f5d68a 60%, #e0b05a 100%);
+  box-shadow: 0 0 60px 20px rgba(255, 214, 138, 0.16);
+  opacity: 0.5;
+}
+
+.hw-web {
+  position: absolute;
+  top: 72px;
+  left: 0;
+  width: 150px;
+  opacity: 0.28;
+}
+
+.hw-spider {
+  position: absolute;
+  top: 72px;
+  left: 96px;
+  width: 22px;
+  animation: hw-spider 7s ease-in-out infinite alternate;
+}
+
+.hw-spider::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  width: 1px;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+@keyframes hw-spider {
+  from { transform: translateY(20px); }
+  to { transform: translateY(90px); }
+}
+
+.hw-pumpkin {
+  position: absolute;
+  bottom: 6px;
+  opacity: 0.55;
+}
+
+.hw-pumpkin-1 { left: 2%; width: 120px; }
+.hw-pumpkin-2 { right: 3%; width: 96px; }
+.hw-pumpkin-3 { left: calc(2% + 104px); width: 60px; opacity: 0.45; }
+
+.hw-ghost {
+  position: absolute;
+  left: 0;
+  width: 54px;
+  opacity: 0.38;
+  animation: hw-fly linear infinite;
+  will-change: transform;
+}
+
+.hw-ghost svg {
+  animation: hw-bob 3s ease-in-out infinite alternate;
+}
+
+.hw-ghost-1 { top: 22%; animation-duration: 38s; animation-delay: -5s; }
+.hw-ghost-2 { top: 55%; width: 42px; animation-duration: 46s; animation-delay: -24s; animation-direction: reverse; }
+.hw-ghost-3 { top: 78%; width: 36px; animation-duration: 52s; animation-delay: -40s; }
+
+@keyframes hw-fly {
+  from { transform: translate3d(-12vw, 0, 0); }
+  to { transform: translate3d(112vw, -6vh, 0); }
+}
+
+@keyframes hw-bob {
+  from { transform: translateY(-10px) rotate(-4deg); }
+  to { transform: translateY(10px) rotate(4deg); }
+}
+
+.hw-bat {
+  position: absolute;
+  left: 0;
+  width: 34px;
+  opacity: 0.6;
+  animation: hw-bat-fly 18s linear infinite;
+  will-change: transform;
+}
+
+.hw-bat svg {
+  animation: hw-flap 0.25s ease-in-out infinite alternate;
+}
+
+.hw-bat-1 { top: 14%; animation-delay: -3s; }
+.hw-bat-2 { top: 34%; width: 26px; animation-duration: 24s; animation-delay: -15s; }
+
+@keyframes hw-bat-fly {
+  0% { transform: translate3d(-10vw, 0, 0); }
+  25% { transform: translate3d(20vw, -4vh, 0); }
+  50% { transform: translate3d(50vw, 3vh, 0); }
+  75% { transform: translate3d(80vw, -3vh, 0); }
+  100% { transform: translate3d(112vw, 2vh, 0); }
+}
+
+@keyframes hw-flap {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(0.45); }
+}
+
+/* --- Easter eggi --- */
+.hw-swarm-bat {
+  position: absolute;
+  left: 0;
+  width: 30px;
+  opacity: 0;
+  animation: hw-swarm 2.8s ease-in forwards;
+}
+
+.hw-swarm-bat svg {
+  animation: hw-flap 0.18s ease-in-out infinite alternate;
+}
+
+@keyframes hw-swarm {
+  0% { transform: translate3d(-10vw, 0, 0) scale(0.6); opacity: 0; }
+  10% { opacity: 0.9; }
+  100% { transform: translate3d(110vw, -30vh, 0) scale(1.1); opacity: 0.9; }
+}
+
+.hw-boo {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: min(220px, 50vw);
+  opacity: 0;
+  animation: hw-boo 1.8s ease forwards;
+}
+
+.hw-boo-text {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #fff;
+  text-shadow: 0 0 18px rgba(168, 85, 247, 0.8);
+}
+
+@keyframes hw-boo {
+  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+  25% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.85; }
+  70% { transform: translate(-50%, -50%) scale(1); opacity: 0.85; }
+  100% { transform: translate(-50%, -60%) scale(1.05); opacity: 0; }
+}
+
+.hw-peek {
+  position: absolute;
+  bottom: 0;
+  width: 70px;
+  opacity: 0.5;
+  transform: translateY(100%);
+  animation: hw-peek 4.5s ease-in-out forwards;
+}
+
+.hw-peek.left { left: 12px; }
+.hw-peek.right { right: 12px; }
+
+@keyframes hw-peek {
+  0% { transform: translateY(100%); }
+  25%, 70% { transform: translateY(35%); }
+  100% { transform: translateY(100%); }
+}
+
+body.halloween .halloween-footer-pumpkin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  margin-left: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+body.halloween .halloween-footer-pumpkin:hover {
+  transform: scale(1.2) rotate(-10deg);
+}
+
+body.halloween .halloween-footer-pumpkin.wiggle {
+  animation: hw-wiggle 0.5s ease;
+}
+
+@keyframes hw-wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-18deg) scale(1.15); }
+  75% { transform: rotate(18deg) scale(1.15); }
+}
+
+/* --- Telefon: mniej elementów, mniejsze dekoracje --- */
+@media (max-width: 640px) {
+  .hw-ghost-3,
+  .hw-bat-2,
+  .hw-pumpkin-3 { display: none; }
+  .hw-ghost { width: 40px; }
+  .hw-moon { top: 84px; width: 70px; height: 70px; }
+  .hw-web { width: 90px; }
+  .hw-spider { left: 58px; width: 16px; }
+  .hw-pumpkin-1 { width: 72px; }
+  .hw-pumpkin-2 { width: 58px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-overlay { display: none; }
+  .hw-bg *,
+  body.halloween .app-header::before,
+  body.halloween .app-header::after {
+    animation: none !important;
+  }
+}
+
+@media print {
+  .hw-bg,
+  .hw-overlay { display: none !important; }
 }
