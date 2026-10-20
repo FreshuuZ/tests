@@ -480,6 +480,15 @@
                 </svg>
                 <span>Maty sezonowe</span>
               </button>
+
+              <button id="openRecentMatsBtn" class="btn-print-mats" data-navigate="recent" aria-label="Ostatnio dodane maty">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>Ostatnio dodane</span>
+              </button>
               
               <button id="exportExcelBtn" class="btn-export-excel" aria-label="Eksportuj do Excel">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -580,6 +589,36 @@
         <section>
           <h2 class="section-title">🗓️ Lista Mat Sezonowych (najnowsze na górze)</h2>
           <div id="seasonalList" class="mats-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <!-- ==================== WIDOK: OSTATNIO DODANE MATY ==================== -->
+    <div id="recentView" class="view">
+      <main class="app-main">
+        <section class="card">
+          <div class="card-header">
+            <h2>🕒 Ostatnio dodane maty</h2>
+          </div>
+          <p style="margin: 0 0 16px; color: var(--muted); font-size: 0.9rem;">Maty z Listy Mat Logo dodane w ciągu ostatnich 30 dni</p>
+          <div class="search-box">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" id="recentSearch" placeholder="Wpisz nazwę, lokalizację lub rozmiar..."
+              class="search-input">
+          </div>
+          <div class="mats-stats">
+            <span id="recentCount">Załadowano: 0 mat</span>
+            <span id="recentFiltered" style="display:none;"></span>
+          </div>
+        </section>
+
+        <section>
+          <h2 class="section-title">🕒 Dodane w ostatnich 30 dniach (najnowsze na górze)</h2>
+          <div id="recentList" class="mats-list"></div>
         </section>
       </main>
     </div>
@@ -1560,7 +1599,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="logoData.js?v=33"></script>
   <script src="locationFormat.js?v=1"></script>
-  <script src="script.js?v=37"></script>
+  <script src="script.js?v=38"></script>
 </body>
 
 </html>
