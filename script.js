@@ -880,27 +880,61 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ==================== HALLOWEEN – DEKORACJE I EASTER EGGI ====================
   function createHalloweenFX() {
-    const GHOST_SVG = `<svg viewBox="0 0 64 72" xmlns="http://www.w3.org/2000/svg"><path d="M32 2C16 2 6 14 6 30v38l8-6 8 6 10-7 10 7 8-6 8 6V30C58 14 48 2 32 2z" fill="#fff"/><ellipse cx="23" cy="30" rx="4.5" ry="6" fill="#2a1a3a"/><ellipse cx="41" cy="30" rx="4.5" ry="6" fill="#2a1a3a"/><ellipse cx="24.2" cy="28.2" rx="1.4" ry="1.8" fill="#fff"/><ellipse cx="42.2" cy="28.2" rx="1.4" ry="1.8" fill="#fff"/><ellipse cx="32" cy="45" rx="5" ry="6" fill="#2a1a3a"/></svg>`;
-    const BAT_SVG = `<svg viewBox="0 0 64 32" xmlns="http://www.w3.org/2000/svg"><path d="M32 10c2-4 4-6 4-6l1 5c3-1 6 0 8 2 4-4 11-5 17-2-4 2-6 6-6 10-3-2-7-2-9 1-2-2-6-2-8 0-2 2-4 6-7 9-3-3-5-7-7-9-2-2-6-2-8 0-2-3-6-3-9-1 0-4-2-8-6-10 6-3 13-2 17 2 2-2 5-3 8-2l1-5s2 2 4 6z" fill="#6d28d9"/><circle cx="29.5" cy="13.5" r="1.15" fill="#fef3c7"/><circle cx="35" cy="13.5" r="1.15" fill="#fef3c7"/></svg>`;
+    const GHOST_SVG = `<svg viewBox="0 0 64 72" xmlns="http://www.w3.org/2000/svg"><path d="M32 2C16 2 6 14 6 30v38l8-6 8 6 10-7 10 7 8-6 8 6V30C58 14 48 2 32 2z" fill="#fff"/><ellipse cx="23" cy="30" rx="4.5" ry="6" fill="#2a1a3a"/><ellipse cx="41" cy="30" rx="4.5" ry="6" fill="#2a1a3a"/><ellipse cx="32" cy="45" rx="5" ry="6" fill="#2a1a3a"/></svg>`;
+    const BAT_SVG = `<svg viewBox="0 0 64 32" xmlns="http://www.w3.org/2000/svg"><path d="M32 10c2-4 4-6 4-6l1 5c3-1 6 0 8 2 4-4 11-5 17-2-4 2-6 6-6 10-3-2-7-2-9 1-2-2-6-2-8 0-2 2-4 6-7 9-3-3-5-7-7-9-2-2-6-2-8 0-2-3-6-3-9-1 0-4-2-8-6-10 6-3 13-2 17 2 2-2 5-3 8-2l1-5s2 2 4 6z" fill="#0b0610"/></svg>`;
     const PUMPKIN_SVG = `<svg viewBox="0 0 120 112" xmlns="http://www.w3.org/2000/svg"><path d="M58 30c-1-12 4-20 12-26" stroke="#3f6212" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M68 14c8 2 12 8 9 13" stroke="#84cc16" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="32" cy="70" rx="26" ry="34" fill="#9a3412"/><ellipse cx="88" cy="70" rx="26" ry="34" fill="#c2410c"/><ellipse cx="48" cy="72" rx="22" ry="36" fill="#ea580c"/><ellipse cx="74" cy="72" rx="22" ry="36" fill="#f97316"/><ellipse cx="60" cy="72" rx="24" ry="38" fill="#fb923c"/><path d="M60 36c-1 22-1 50 0 72M46 44c-6 16-4 40 2 54M76 44c6 16 4 40-2 54" stroke="#c2410c" stroke-width="2.2" fill="none" opacity="0.45" stroke-linecap="round"/><ellipse cx="50" cy="54" rx="7" ry="12" fill="#fed7aa" opacity="0.55"/><path d="M40 64l12-14 10 14z" fill="#1c0a14"/><path d="M68 64l12-14 10 14z" fill="#1c0a14"/><path d="M46 64l6-7 5 7z" fill="#fde68a" opacity="0.85"/><path d="M74 64l6-7 5 7z" fill="#fde68a" opacity="0.85"/><path d="M44 82c6 10 26 12 34 0-6 4-10 8-17 8s-12-4-17-8z" fill="#1c0a14"/><path d="M52 84c3 3 13 3 16 0" stroke="#fde68a" stroke-width="1.4" fill="none" opacity="0.7"/></svg>`;
     const WEB_SVG = `<svg viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#fff" stroke-width="1.2"><path d="M0 0L150 150M0 0L150 70M0 0L70 150M0 0L150 10M0 0L10 150"/><path d="M0 30Q18 22 28 8M0 62Q36 46 56 14M0 95Q55 70 86 18M0 128Q72 96 118 22"/><path d="M28 8Q30 20 22 28M56 14Q60 40 40 56M86 18Q92 62 60 86M118 22Q124 84 80 118"/></svg>`;
     const SPIDER_SVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g stroke="#e9d5ff" stroke-width="1.3" stroke-linecap="round"><path d="M12 10L4 4M12 10L3 10M12 14L3 18M12 14L5 22M12 10L20 4M12 10L21 10M12 14L21 18M12 14L19 22"/></g><ellipse cx="12" cy="13.5" rx="4.2" ry="5" fill="#2e1065"/><circle cx="12" cy="8" r="3" fill="#3b0764"/><circle cx="11" cy="7.4" r="0.7" fill="#fef3c7"/><circle cx="13.2" cy="7.4" r="0.7" fill="#fef3c7"/></svg>`;
 
     let bgLayer = null;
-    let overlay = null;
+    let flyLayer = null;
     let peekTimer = null;
+    let flyTimer = null;
     let logoClicks = [];
 
     const isActive = () => document.body.classList.contains('halloween');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function spawn(className, html, lifetimeMs) {
-      if (!overlay) return null;
+      if (!bgLayer) return null;
       const el = document.createElement('div');
       el.className = className;
       el.innerHTML = html;
-      overlay.appendChild(el);
+      bgLayer.appendChild(el);
       if (lifetimeMs) setTimeout(() => el.remove(), lifetimeMs);
       return el;
+    }
+
+    function pageTopInView() {
+      const margin = 80;
+      const span = Math.max(140, window.innerHeight - margin * 2);
+      return window.scrollY + margin + Math.random() * span;
+    }
+
+    function launchFlyer(kind) {
+      if (!flyLayer || !isActive() || reduceMotion || document.visibilityState !== 'visible') return;
+      const isBat = kind === 'bat';
+      const cap = isBat ? 2 : 3;
+      if (flyLayer.querySelectorAll(isBat ? '.hw-bat' : '.hw-ghost').length >= cap) return;
+      const el = document.createElement('div');
+      const fromRight = Math.random() < 0.45;
+      el.className = `${isBat ? 'hw-bat' : 'hw-ghost'} hw-pass${fromRight ? ' from-right' : ''}`;
+      el.innerHTML = isBat ? BAT_SVG : GHOST_SVG;
+      el.style.top = pageTopInView() + 'px';
+      el.style.width = (isBat ? 28 + Math.random() * 12 : 46 + Math.random() * 14) + 'px';
+      const dur = (isBat ? 11 : 15) + Math.random() * 6;
+      el.style.animationDuration = dur + 's';
+      flyLayer.appendChild(el);
+      setTimeout(() => el.remove(), dur * 1000 + 250);
+    }
+
+    function scheduleFlyers() {
+      clearTimeout(flyTimer);
+      flyTimer = setTimeout(() => {
+        launchFlyer('ghost');
+        if (Math.random() < 0.55) launchFlyer('bat');
+        scheduleFlyers();
+      }, 2400 + Math.random() * 2600);
     }
 
     function schedulePeek() {
@@ -914,11 +948,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function batSwarm() {
-      for (let i = 0; i < 10; i++) {
-        const bat = spawn('hw-swarm-bat', BAT_SVG, 3200 + i * 120);
-        if (!bat) return;
-        bat.style.top = `${30 + Math.random() * 55}%`;
+      if (!flyLayer) return;
+      for (let i = 0; i < 8; i++) {
+        const bat = document.createElement('div');
+        bat.className = 'hw-swarm-bat';
+        bat.innerHTML = BAT_SVG;
+        bat.style.top = (window.scrollY + window.innerHeight * (0.15 + Math.random() * 0.7)) + 'px';
         bat.style.animationDelay = `${i * 0.12}s`;
+        flyLayer.appendChild(bat);
+        setTimeout(() => bat.remove(), 3400 + i * 120);
       }
     }
 
@@ -952,30 +990,28 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="hw-pumpkin hw-pumpkin-2">${PUMPKIN_SVG}</div>
       `;
 
-      overlay = document.createElement('div');
-      overlay.className = 'hw-overlay';
-      overlay.setAttribute('aria-hidden', 'true');
-      overlay.innerHTML = `
-        <div class="hw-ghost hw-ghost-1">${GHOST_SVG}</div>
-        <div class="hw-ghost hw-ghost-2">${GHOST_SVG}</div>
-        <div class="hw-ghost hw-ghost-3">${GHOST_SVG}</div>
-        <div class="hw-bat hw-bat-1">${BAT_SVG}</div>
-        <div class="hw-bat hw-bat-2">${BAT_SVG}</div>
-      `;
+      flyLayer = document.createElement('div');
+      flyLayer.className = 'hw-fly';
+      flyLayer.setAttribute('aria-hidden', 'true');
 
       const aurora = document.querySelector('.background-aurora');
       if (aurora) aurora.after(bgLayer);
       else document.body.prepend(bgLayer);
-      document.body.appendChild(overlay);
+      document.body.appendChild(flyLayer);
+      launchFlyer('ghost');
+      launchFlyer('bat');
+      setTimeout(() => { if (isActive()) launchFlyer('ghost'); }, 1600);
+      scheduleFlyers();
       schedulePeek();
     }
 
     function stop() {
       clearTimeout(peekTimer);
+      clearTimeout(flyTimer);
       bgLayer?.remove();
-      overlay?.remove();
+      flyLayer?.remove();
       bgLayer = null;
-      overlay = null;
+      flyLayer = null;
     }
 
     return { start, stop };
