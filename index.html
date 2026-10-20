@@ -5,10 +5,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Elis ServiceHub — Centrum Główne</title>
-  <link rel="stylesheet" href="style.css?v=31">
+  <link rel="stylesheet" href="style.css?v=33">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0d1117">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <style>
+    /* Krytyczne style motywu – działają nawet, gdy przeglądarka ma stary style.css */
+    .header-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+    .theme-menu-wrapper { position: relative; }
+    #themeMenu:not(.open) { display: none !important; }
+    #themeToggle .icon-pumpkin { opacity: 0; }
+    body.light #themeToggle .icon-moon { opacity: 0; }
+    body.dark #themeToggle .icon-sun { opacity: 0; }
+    body.halloween #themeToggle .icon-sun,
+    body.halloween #themeToggle .icon-moon { opacity: 0; }
+    body.halloween #themeToggle .icon-pumpkin { opacity: 1; }
+  </style>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -33,6 +46,7 @@
         <span class="brand-title" id="headerTitle">Elis ServiceHub</span>
       </div>
     </div>
+    <div class="header-actions">
     <button id="adminBtn" class="admin-btn" aria-label="Panel administratora">
       <svg class="admin-icon-locked" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -70,7 +84,7 @@
         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
       </svg>
     </button>
-    <div id="themeMenu" class="theme-menu" role="menu" aria-label="Motyw">
+    <div id="themeMenu" class="theme-menu" role="menu" aria-label="Motyw" hidden>
       <div class="theme-menu-title">Motyw</div>
       <button class="theme-option" role="menuitemradio" data-theme="light">
         <span class="theme-option-icon">☀️</span>
@@ -84,9 +98,10 @@
       </button>
       <button class="theme-option" role="menuitemradio" data-theme="halloween">
         <span class="theme-option-icon">🎃</span>
-        <span class="theme-option-label">Halloween <small>do 30.11</small></span>
+        <span class="theme-option-label">Halloween <small>do 1.11</small></span>
         <span class="theme-option-check">✓</span>
       </button>
+    </div>
     </div>
     </div>
   </header>
@@ -1150,7 +1165,6 @@
 
   <footer class="app-footer">
     <span>Created by D. & M. Bocian</span>
-    <button id="halloweenFooterPumpkin" class="halloween-footer-pumpkin" type="button" aria-label="Cukierek albo psikus">🎃</button>
   </footer>
 
   <div id="toast" class="toast"></div>
@@ -1626,7 +1640,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="logoData.js?v=33"></script>
   <script src="locationFormat.js?v=1"></script>
-  <script src="script.js?v=39"></script>
+  <script src="script.js?v=42"></script>
 </body>
 
 </html>
