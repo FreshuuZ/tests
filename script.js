@@ -799,16 +799,208 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
   
-  // ==================== THEME TOGGLE ====================
-  const themeToggle = document.getElementById("themeToggle");
-  const savedTheme = localStorage.getItem("theme") || 'light';
-  document.body.className = savedTheme;
+  // ==================== MOTYWY ====================
+  const HALLOWEEN_END = new Date(2026, 11, 1); // motyw Halloween dostępny do 30.11.2026 włącznie
+  const isHalloweenAvailable = () => new Date() < HALLOWEEN_END;
 
-  themeToggle.addEventListener("click", () => {
-    const isDark = document.body.classList.toggle("dark");
-    document.body.classList.toggle("light", !isDark);
-    localStorage.setItem("theme", isDark ? "dark" : "light");
+  // Halloween bazuje na ciemnym motywie – wszystkie style body.dark nadal działają
+  const THEME_CLASSES = { light: 'light', dark: 'dark', halloween: 'dark halloween' };
+  const THEME_COLORS = { light: '#e3e9f0', dark: '#0d1117', halloween: '#130b1c' };
+
+  const themeToggle = document.getElementById("themeToggle");
+  const themeMenu = document.getElementById("themeMenu");
+  const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+
+  const halloweenFX = createHalloweenFX();
+
+  function applyTheme(theme) {
+    if (theme === 'halloween' && !isHalloweenAvailable()) theme = 'dark';
+    if (!THEME_CLASSES[theme]) theme = 'light';
+
+    document.body.className = THEME_CLASSES[theme];
+    localStorage.setItem("theme", theme);
+    if (themeColorMeta) themeColorMeta.setAttribute('content', THEME_COLORS[theme]);
+
+    themeMenu.querySelectorAll('.theme-option').forEach(option => {
+      const isActive = option.dataset.theme === theme;
+      option.classList.toggle('active', isActive);
+      option.setAttribute('aria-checked', isActive);
+    });
+
+    if (theme === 'halloween') halloweenFX.start();
+    else halloweenFX.stop();
+  }
+
+  function setThemeMenuOpen(open) {
+    themeMenu.classList.toggle('open', open);
+    themeToggle.setAttribute('aria-expanded', open);
+  }
+
+  if (!isHalloweenAvailable()) {
+    themeMenu.querySelector('[data-theme="halloween"]')?.remove();
+  }
+
+  applyTheme(localStorage.getItem("theme") || 'light');
+
+  themeToggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setThemeMenuOpen(!themeMenu.classList.contains('open'));
   });
+
+  themeMenu.addEventListener('click', (e) => {
+    const option = e.target.closest('.theme-option');
+    if (!option) return;
+    applyTheme(option.dataset.theme);
+    setThemeMenuOpen(false);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (themeMenu.classList.contains('open') && !themeMenu.contains(e.target)) setThemeMenuOpen(false);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && themeMenu.classList.contains('open')) setThemeMenuOpen(false);
+  });
+
+  // ==================== HALLOWEEN – DEKORACJE I EASTER EGGI ====================
+  function createHalloweenFX() {
+    const GHOST_SVG = `<svg viewBox="0 0 64 72" xmlns="http://www.w3.org/2000/svg"><path d="M32 2C16 2 6 14 6 30v38l8-6 8 6 10-7 10 7 8-6 8 6V30C58 14 48 2 32 2z" fill="#fff"/><ellipse cx="23" cy="30" rx="4.5" ry="6" fill="#2a1a3a"/><ellipse cx="41" cy="30" rx="4.5" ry="6" fill="#2a1a3a"/><ellipse cx="32" cy="45" rx="5" ry="6" fill="#2a1a3a"/></svg>`;
+    const BAT_SVG = `<svg viewBox="0 0 64 32" xmlns="http://www.w3.org/2000/svg"><path d="M32 10c2-4 4-6 4-6l1 5c3-1 6 0 8 2 4-4 11-5 17-2-4 2-6 6-6 10-3-2-7-2-9 1-2-2-6-2-8 0-2 2-4 6-7 9-3-3-5-7-7-9-2-2-6-2-8 0-2-3-6-3-9-1 0-4-2-8-6-10 6-3 13-2 17 2 2-2 5-3 8-2l1-5s2 2 4 6z" fill="#0b0610"/></svg>`;
+    const PUMPKIN_SVG = `<svg viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg"><path d="M50 20c-3-8-1-14 5-17" stroke="#4d7c0f" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="30" cy="56" rx="24" ry="31" fill="#c2410c"/><ellipse cx="70" cy="56" rx="24" ry="31" fill="#c2410c"/><ellipse cx="50" cy="56" rx="26" ry="33" fill="#f97316"/><path d="M31 48l8-9 8 9z M53 48l8-9 8 9z" fill="#fcd34d"/><path d="M28 64q22 16 44 0l-7 2-4 5-5-5-6 5-5-5-6 5-4-5z" fill="#fcd34d"/></svg>`;
+    const WEB_SVG = `<svg viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#fff" stroke-width="1.2"><path d="M0 0L150 150M0 0L150 70M0 0L70 150M0 0L150 10M0 0L10 150"/><path d="M0 30Q18 22 28 8M0 62Q36 46 56 14M0 95Q55 70 86 18M0 128Q72 96 118 22"/><path d="M28 8Q30 20 22 28M56 14Q60 40 40 56M86 18Q92 62 60 86M118 22Q124 84 80 118"/></svg>`;
+    const SPIDER_SVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g stroke="#e9d5ff" stroke-width="1.4" stroke-linecap="round"><path d="M12 10L4 4M12 10L3 10M12 14L3 18M12 14L5 22M12 10L20 4M12 10L21 10M12 14L21 18M12 14L19 22"/></g><ellipse cx="12" cy="13" rx="4" ry="5" fill="#1f1029"/><circle cx="12" cy="8" r="3" fill="#1f1029"/></svg>`;
+
+    const JOKES = [
+      '🎃 Cukierek albo psikus? Dziś cukierek – wszystkie maty na swoim miejscu!',
+      '👻 Duch magazynu mówi: rura 13 jest nawiedzona...',
+      '🦇 Nietoperze sprawdziły inwentaryzację – zgodność 100%!',
+      '🕸️ Pająk prosi, żeby nie odkurzać regału A.',
+      '🍬 Znalazłeś ukrytego cukierka! Smacznego.',
+      '🧙 Zaklęcie rzucone: niech każda trasa będzie bez zamienników!',
+      '💀 Szkielet z magazynu nadal czeka na swoją matę 150x85.'
+    ];
+
+    let bgLayer = null;
+    let overlay = null;
+    let peekTimer = null;
+    let typed = '';
+    let logoClicks = [];
+
+    const isActive = () => document.body.classList.contains('halloween');
+
+    function spawn(className, html, lifetimeMs) {
+      if (!overlay) return null;
+      const el = document.createElement('div');
+      el.className = className;
+      el.innerHTML = html;
+      overlay.appendChild(el);
+      if (lifetimeMs) setTimeout(() => el.remove(), lifetimeMs);
+      return el;
+    }
+
+    function schedulePeek() {
+      clearTimeout(peekTimer);
+      peekTimer = setTimeout(() => {
+        if (isActive() && document.visibilityState === 'visible') {
+          spawn(`hw-peek ${Math.random() < 0.5 ? 'left' : 'right'}`, GHOST_SVG, 4600);
+        }
+        schedulePeek();
+      }, 45000 + Math.random() * 45000);
+    }
+
+    function batSwarm() {
+      for (let i = 0; i < 10; i++) {
+        const bat = spawn('hw-swarm-bat', BAT_SVG, 3200 + i * 120);
+        if (!bat) return;
+        bat.style.top = `${30 + Math.random() * 55}%`;
+        bat.style.animationDelay = `${i * 0.12}s`;
+      }
+      showToast('🦇 Wypuściłeś nietoperze!', 'success');
+    }
+
+    function booGhost() {
+      spawn('hw-boo', `${GHOST_SVG}<div class="hw-boo-text">BUU!</div>`, 1900);
+      showToast('👻 BUU! Złapałeś ducha!', 'success');
+    }
+
+    // Easter egg 1: 5 szybkich kliknięć w logo → stado nietoperzy
+    document.querySelector('.brand-logo')?.addEventListener('click', () => {
+      if (!isActive()) return;
+      const now = Date.now();
+      logoClicks = logoClicks.filter(t => now - t < 2000).concat(now);
+      if (logoClicks.length >= 5) {
+        logoClicks = [];
+        batSwarm();
+      }
+    });
+
+    // Easter egg 2: wpisanie "boo" lub "buu" poza polem tekstowym → duch
+    document.addEventListener('keydown', (e) => {
+      if (!isActive() || e.target.closest('input, textarea, select, [contenteditable]')) return;
+      if (e.key.length !== 1) return;
+      typed = (typed + e.key.toLowerCase()).slice(-3);
+      if (typed === 'boo' || typed === 'buu') {
+        typed = '';
+        booGhost();
+      }
+    });
+
+    // Easter egg 3: dynia w stopce → losowa wróżba
+    const footerPumpkin = document.getElementById('halloweenFooterPumpkin');
+    footerPumpkin?.addEventListener('click', () => {
+      if (!isActive()) return;
+      footerPumpkin.classList.remove('wiggle');
+      void footerPumpkin.offsetWidth;
+      footerPumpkin.classList.add('wiggle');
+      showToast(JOKES[Math.floor(Math.random() * JOKES.length)], 'success');
+    });
+
+    // Easter egg 4: co jakiś czas duch zerka zza krawędzi ekranu (schedulePeek)
+
+    function start() {
+      if (bgLayer) return;
+
+      bgLayer = document.createElement('div');
+      bgLayer.className = 'hw-bg';
+      bgLayer.setAttribute('aria-hidden', 'true');
+      bgLayer.innerHTML = `
+        <div class="hw-stars"></div>
+        <div class="hw-moon"></div>
+        <div class="hw-web">${WEB_SVG}</div>
+        <div class="hw-spider">${SPIDER_SVG}</div>
+        <div class="hw-pumpkin hw-pumpkin-1">${PUMPKIN_SVG}</div>
+        <div class="hw-pumpkin hw-pumpkin-3">${PUMPKIN_SVG}</div>
+        <div class="hw-pumpkin hw-pumpkin-2">${PUMPKIN_SVG}</div>
+      `;
+
+      overlay = document.createElement('div');
+      overlay.className = 'hw-overlay';
+      overlay.setAttribute('aria-hidden', 'true');
+      overlay.innerHTML = `
+        <div class="hw-ghost hw-ghost-1">${GHOST_SVG}</div>
+        <div class="hw-ghost hw-ghost-2">${GHOST_SVG}</div>
+        <div class="hw-ghost hw-ghost-3">${GHOST_SVG}</div>
+        <div class="hw-bat hw-bat-1">${BAT_SVG}</div>
+        <div class="hw-bat hw-bat-2">${BAT_SVG}</div>
+      `;
+
+      const aurora = document.querySelector('.background-aurora');
+      if (aurora) aurora.after(bgLayer);
+      else document.body.prepend(bgLayer);
+      document.body.appendChild(overlay);
+      schedulePeek();
+    }
+
+    function stop() {
+      clearTimeout(peekTimer);
+      bgLayer?.remove();
+      overlay?.remove();
+      bgLayer = null;
+      overlay = null;
+    }
+
+    return { start, stop };
+  }
   
   // ==================== TOAST ====================
   function showToast(message, type = "success") {
