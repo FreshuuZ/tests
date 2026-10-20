@@ -47,8 +47,8 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  position: relative;
   transition: background-color 0.3s, color 0.3s;
-  overflow-x: hidden;
 }
 
 #app {
@@ -5865,31 +5865,41 @@ body.halloween .app-header::after {
 }
 
 /* --- Warstwy dekoracji (nigdy nie przechwytują kliknięć) --- */
-.hw-bg,
-.hw-overlay {
+/* Dynie, mgła i księżyc zostają przy krawędziach ekranu */
+.hw-bg {
   position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Duszki i nietoperze są w miejscu strony, w którym wyleciały.
+   Poziomy clip ucina wylot za krawędź, żeby nie pojawiał się pasek w bok. */
+.hw-fly {
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100vh;
-  height: 100svh;
-  overflow: hidden;
+  height: 0;
+  overflow-x: clip;
+  overflow-y: visible;
   pointer-events: none;
+  z-index: 999;
 }
 
 .hw-bg,
 .hw-bg *,
-.hw-overlay,
-.hw-overlay * {
+.hw-fly,
+.hw-fly * {
   pointer-events: none;
   transition: none !important;
 }
 
-.hw-bg { z-index: -1; }
-.hw-overlay { z-index: 999; }
-
 .hw-bg svg,
-.hw-overlay svg {
+.hw-fly svg {
   display: block;
   width: 100%;
   height: auto;
@@ -5971,14 +5981,8 @@ body.halloween .app-header::after {
 .hw-pumpkin {
   position: absolute;
   bottom: 8px;
+  top: auto;
   opacity: 0.55;
-}
-
-@supports (height: 100svh) {
-  .hw-pumpkin {
-    bottom: auto;
-    top: calc(100svh - 132px);
-  }
 }
 
 .hw-pumpkin-1 { left: 2%; width: 120px; }
@@ -5987,9 +5991,9 @@ body.halloween .app-header::after {
 
 .hw-ghost {
   position: absolute;
-  left: -20vw;
-  width: 58px;
-  opacity: 0.88;
+  left: 0;
+  width: 54px;
+  opacity: 0.4;
   animation: hw-fly linear infinite;
 }
 
@@ -5997,13 +6001,27 @@ body.halloween .app-header::after {
   animation: hw-bob 3s ease-in-out infinite alternate;
 }
 
-.hw-ghost-1 { top: 24%; animation-duration: 18s; animation-delay: -4s; }
-.hw-ghost-2 { top: 52%; width: 48px; animation-duration: 22s; animation-delay: -11s; animation-direction: reverse; }
-.hw-ghost-3 { top: 74%; width: 40px; animation-duration: 26s; animation-delay: -18s; }
+.hw-ghost.hw-pass,
+.hw-bat.hw-pass {
+  animation-name: hw-fly;
+  animation-timing-function: linear;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+
+.hw-ghost.from-right,
+.hw-bat.from-right {
+  animation-name: hw-fly-back;
+}
 
 @keyframes hw-fly {
-  from { left: -20vw; }
-  to { left: 110vw; }
+  from { transform: translateX(-30vw); }
+  to { transform: translateX(calc(100vw + 80px)); }
+}
+
+@keyframes hw-fly-back {
+  from { transform: translateX(calc(100vw + 80px)); }
+  to { transform: translateX(-30vw); }
 }
 
 @keyframes hw-bob {
@@ -6013,10 +6031,10 @@ body.halloween .app-header::after {
 
 .hw-bat {
   position: absolute;
-  left: -16vw;
-  width: 46px;
-  opacity: 0.95;
-  animation: hw-bat-fly 12s linear infinite;
+  left: 0;
+  width: 34px;
+  opacity: 0.6;
+  animation: hw-bat-fly 14s linear infinite;
 }
 
 .hw-bat svg,
@@ -6032,11 +6050,11 @@ body.halloween .app-header::after {
 .hw-bat-2 { top: 40%; width: 36px; animation-duration: 15s; animation-delay: -8s; }
 
 @keyframes hw-bat-fly {
-  0% { left: -16vw; margin-top: 0; }
+  0% { transform: translateX(-30vw); margin-top: 0; }
   25% { margin-top: -18px; }
   50% { margin-top: 14px; }
   75% { margin-top: -10px; }
-  100% { left: 110vw; margin-top: 8px; }
+  100% { transform: translateX(calc(100vw + 80px)); margin-top: 8px; }
 }
 
 @keyframes hw-flap {
@@ -6058,9 +6076,9 @@ body.halloween .app-header::after {
 }
 
 @keyframes hw-swarm {
-  0% { transform: translate3d(-10vw, 0, 0) scale(0.6); opacity: 0; }
+  0% { transform: translate3d(-30vw, 0, 0) scale(0.6); opacity: 0; }
   10% { opacity: 0.9; }
-  100% { transform: translate3d(110vw, -30vh, 0) scale(1.1); opacity: 0.9; }
+  100% { transform: translate3d(calc(100vw + 80px), -30vh, 0) scale(1.1); opacity: 0.9; }
 }
 
 .hw-peek {
@@ -6083,28 +6101,19 @@ body.halloween .app-header::after {
 
 /* --- Telefon: dekoracje nadal widoczne, dynie nie skaczą przy pasku przeglądarki --- */
 @media (max-width: 640px) {
-  .hw-ghost-3,
   .hw-pumpkin-3 { display: none; }
-  .hw-ghost { width: 64px; opacity: 0.92; }
-  .hw-ghost-1 { top: 30%; animation-duration: 13s; }
-  .hw-ghost-2 { top: 58%; width: 52px; animation-duration: 16s; }
-  .hw-bat { width: 58px; }
-  .hw-bat-1 { top: 22%; animation-duration: 9s; }
-  .hw-bat-2 { top: 46%; width: 44px; animation-duration: 11s; }
+  .hw-ghost { opacity: 0.45; }
+  .hw-bat { opacity: 0.7; }
   .hw-moon { top: 84px; width: 70px; height: 70px; }
   .hw-web { width: 90px; }
   .hw-spider { left: 58px; width: 16px; }
-  .hw-pumpkin { bottom: 8px; }
-  @supports (height: 100svh) {
-    .hw-pumpkin { bottom: auto; top: calc(100svh - 108px); }
-  }
   .hw-pumpkin-1 { width: 84px; }
   .hw-pumpkin-2 { width: 68px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hw-bg *,
-  .hw-overlay *,
+  .hw-fly *,
   body.halloween .app-header::before,
   body.halloween .app-header::after {
     animation-duration: 28s !important;
@@ -6113,5 +6122,5 @@ body.halloween .app-header::after {
 
 @media print {
   .hw-bg,
-  .hw-overlay { display: none !important; }
+  .hw-fly { display: none !important; }
 }
