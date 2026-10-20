@@ -1,9 +1,10 @@
-const CACHE_NAME = "elis-panel-v46";
+const CACHE_NAME = "elis-panel-v47";
 const ASSETS = [
   "./",
   "./index.html",
   "./style.css",
   "./script.js",
+  "./locationFormat.js",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
@@ -28,23 +29,22 @@ self.addEventListener("activate", (event) => {
 });
 
 
-// Obsługa żądań – najpierw sprawdzamy cache, potem sieć
+// Obsługa żądań – najpierw sieć (zawsze najnowsza wersja), cache tylko offline
 self.addEventListener("fetch", (event) => {
+  const request = event.request;
+  const isOwnAsset = request.method === "GET" && new URL(request.url).origin === self.location.origin;
+
+  if (!isOwnAsset) return;
+
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    fetch(request, { cache: "no-cache" })
+      .then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        }
+        return response;
+      })
+      .catch(() => caches.match(request, { ignoreSearch: true }))
   );
-
 });
-
-
-
-
-
-
-
-
-
-
-
