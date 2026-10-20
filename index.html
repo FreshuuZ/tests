@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Elis ServiceHub — Centrum Główne</title>
-  <link rel="stylesheet" href="style.css?v=29">
+  <link rel="stylesheet" href="style.css?v=31">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0d1117">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -45,7 +45,14 @@
         <path d="M7 11V7a5 5 0 0 1 9.9-1" />
       </svg>
     </button>
-    <button id="themeToggle" class="theme-toggle" aria-label="Zmień motyw">
+    <div class="theme-menu-wrapper">
+    <button id="themeToggle" class="theme-toggle" aria-label="Wybierz motyw" aria-haspopup="true" aria-expanded="false">
+      <svg class="icon-pumpkin" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 7c-1.5-2-1-4 1-5" />
+        <path d="M12 7c-5 0-9 3-9 7.5S6.5 21 12 21s9-2 9-6.5S17 7 12 7z" />
+        <path d="M8 7.8C6.5 10 6.5 17 8.5 20.5M16 7.8c1.5 2.2 1.5 9.2-.5 12.7" />
+      </svg>
       <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
@@ -63,6 +70,25 @@
         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
       </svg>
     </button>
+    <div id="themeMenu" class="theme-menu" role="menu" aria-label="Motyw">
+      <div class="theme-menu-title">Motyw</div>
+      <button class="theme-option" role="menuitemradio" data-theme="light">
+        <span class="theme-option-icon">☀️</span>
+        <span class="theme-option-label">Jasny</span>
+        <span class="theme-option-check">✓</span>
+      </button>
+      <button class="theme-option" role="menuitemradio" data-theme="dark">
+        <span class="theme-option-icon">🌙</span>
+        <span class="theme-option-label">Ciemny</span>
+        <span class="theme-option-check">✓</span>
+      </button>
+      <button class="theme-option" role="menuitemradio" data-theme="halloween">
+        <span class="theme-option-icon">🎃</span>
+        <span class="theme-option-label">Halloween <small>do 30.11</small></span>
+        <span class="theme-option-check">✓</span>
+      </button>
+    </div>
+    </div>
   </header>
 
   <div id="app">
@@ -1124,6 +1150,7 @@
 
   <footer class="app-footer">
     <span>Created by D. & M. Bocian</span>
+    <button id="halloweenFooterPumpkin" class="halloween-footer-pumpkin" type="button" aria-label="Cukierek albo psikus">🎃</button>
   </footer>
 
   <div id="toast" class="toast"></div>
@@ -1599,7 +1626,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="logoData.js?v=33"></script>
   <script src="locationFormat.js?v=1"></script>
-  <script src="script.js?v=38"></script>
+  <script src="script.js?v=39"></script>
 </body>
 
 </html>
