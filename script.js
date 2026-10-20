@@ -168,6 +168,8 @@ document.addEventListener("DOMContentLoaded", () => {
         renderMats(allLogoMats, matsSearch.value);
       } else if (currentView === 'seasonal') {
         renderSeasonalMats();
+      } else if (currentView === 'recent') {
+        renderRecentMats();
       }
     } else {
       pinError.style.display = 'flex';
@@ -197,6 +199,8 @@ document.addEventListener("DOMContentLoaded", () => {
         renderMats(allLogoMats, matsSearch.value);
       } else if (currentView === 'seasonal') {
         renderSeasonalMats();
+      } else if (currentView === 'recent') {
+        renderRecentMats();
       }
     }
   }
@@ -381,6 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
       allLogoMats = [];
       const newMats = await fetchAndCacheLogoMats();
       renderMats(newMats, matsSearch.value);
+      if (currentView === 'recent') await loadRecentMats();
     }
   }
 
@@ -666,6 +671,7 @@ document.addEventListener("DOMContentLoaded", () => {
     panel: document.getElementById('panelView'),
     mats: document.getElementById('matsView'),
     seasonal: document.getElementById('seasonalView'),
+    recent: document.getElementById('recentView'),
     washing: document.getElementById('washingView'),
     archive: document.getElementById('archiveView'), // Przedsionek
     'archive-replacements': document.getElementById('archiveReplacementsView'), // NOWE
@@ -682,6 +688,7 @@ document.addEventListener("DOMContentLoaded", () => {
     'panel': 'home',
     'mats': 'home',
     'seasonal': 'mats',
+    'recent': 'mats',
     'washing': 'home',
     'archive': 'home',
     'archive-replacements': 'archive',
@@ -713,6 +720,10 @@ document.addEventListener("DOMContentLoaded", () => {
       headerTitle.textContent = 'Maty Logo Sezonowe';
       backBtn.style.display = 'flex';
       loadSeasonalMats();
+    } else if (viewName === 'recent') {
+      headerTitle.textContent = 'Ostatnio dodane';
+      backBtn.style.display = 'flex';
+      loadRecentMats();
     } else if (viewName === 'inventory') {
       headerTitle.textContent = 'Inwentaryzacja Mat';
       backBtn.style.display = 'flex';
@@ -1992,13 +2003,51 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const newLogoMats = invMats.map(mat => ({
-        name: mat.name,
-        mat_number: mat.mat_number,
-        location: mat.location ? LocationFormat.normalizeLocation(mat.location) : mat.location,
-        size: mat.size,
-        quantity: mat.quantity
-      }));
+      // Zachowaj oryginalne daty dodania mat (inaczej "Ostatnio dodane" pokazałoby wszystkie maty)
+      const existingLogoMats = [];
+      for (let from = 0; ; from += 1000) {
+        const { data: page, error: pageError } = await window.supabase
+          .from('logo_mats')
+          .select('name, mat_number, location, size, created_at')
+          .range(from, from + 999);
+        if (pageError) throw pageError;
+        existingLogoMats.push(...page);
+        if (page.length < 1000) break;
+      }
+
+      const looseKey = m => [(m.name || '').trim(), m.mat_number || '', (m.size || '').trim()].join('|');
+      const fullKey = m => looseKey(m) + '|' + LocationFormat.normalizeLocation(m.location || '');
+      const datesByFull = new Map();
+      const datesByLoose = new Map();
+      existingLogoMats.forEach(m => {
+        if (!m.created_at) return;
+        if (!datesByFull.has(fullKey(m))) datesByFull.set(fullKey(m), []);
+        if (!datesByLoose.has(looseKey(m))) datesByLoose.set(looseKey(m), []);
+        datesByFull.get(fullKey(m)).push(m.created_at);
+        datesByLoose.get(looseKey(m)).push(m.created_at);
+      });
+
+      const nowIso = new Date().toISOString();
+      const usedUniqueKeys = new Set();
+
+      const newLogoMats = invMats.map(mat => {
+        const location = mat.location ? LocationFormat.normalizeLocation(mat.location) : mat.location;
+        const createdAt = datesByFull.get(fullKey(mat))?.shift() || datesByLoose.get(looseKey(mat))?.shift() || nowIso;
+
+        // logo_mats ma unikalność (name, location, size) – jak przy dodawaniu, dopisujemy niewidoczną spację
+        let name = mat.name;
+        while (usedUniqueKeys.has([name, location ?? '', mat.size ?? ''].join('|'))) name += ' ';
+        usedUniqueKeys.add([name, location ?? '', mat.size ?? ''].join('|'));
+
+        return {
+          name,
+          mat_number: mat.mat_number,
+          location,
+          size: mat.size,
+          quantity: mat.quantity,
+          created_at: createdAt
+        };
+      });
 
       // Usuń stare wpisy z logo_mats bez naruszenia URI (paczkuje po 150)
       let wipingLogoMats = true;
@@ -2705,33 +2754,34 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function renderSeasonalMats() {
-    const search = (seasonalSearch.value || '').toLowerCase().trim();
+  // Lista mat z datą dodania (maty sezonowe, ostatnio dodane)
+  function renderDatedMats({ mats, listEl, searchEl, countEl, filteredEl, target, emptyText }) {
+    const search = (searchEl.value || '').toLowerCase().trim();
     const filtered = search
-      ? allSeasonalMats.filter(mat =>
+      ? mats.filter(mat =>
           (mat.name?.toLowerCase() || '').includes(search) ||
           (mat.location?.toLowerCase() || '').includes(search) ||
           (mat.size?.toLowerCase() || '').includes(search) ||
           (mat.mat_number?.toLowerCase() || '').includes(search))
-      : allSeasonalMats;
+      : mats;
 
-    const totalQuantity = allSeasonalMats.reduce((sum, mat) => sum + (mat.quantity || 0), 0);
-    seasonalCount.textContent = `Załadowano: ${allSeasonalMats.length} mat (łącznie: ${totalQuantity} szt.)`;
+    const totalQuantity = mats.reduce((sum, mat) => sum + (mat.quantity || 0), 0);
+    countEl.textContent = `Załadowano: ${mats.length} mat (łącznie: ${totalQuantity} szt.)`;
     if (search) {
       const filteredQuantity = filtered.reduce((sum, mat) => sum + (mat.quantity || 0), 0);
-      seasonalFiltered.style.display = 'inline';
-      seasonalFiltered.textContent = `Znaleziono: ${filtered.length} (${filteredQuantity} szt.)`;
+      filteredEl.style.display = 'inline';
+      filteredEl.textContent = `Znaleziono: ${filtered.length} (${filteredQuantity} szt.)`;
     } else {
-      seasonalFiltered.style.display = 'none';
+      filteredEl.style.display = 'none';
     }
 
-    seasonalList.innerHTML = '';
+    listEl.innerHTML = '';
 
     if (filtered.length === 0) {
-      seasonalList.innerHTML = `
+      listEl.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-text">
-            ${search ? 'Nie znaleziono mat spełniających kryteria.' : 'Brak mat sezonowych.'}
+            ${search ? 'Nie znaleziono mat spełniających kryteria.' : emptyText}
           </div>
         </div>
       `;
@@ -2754,18 +2804,30 @@ document.addEventListener("DOMContentLoaded", () => {
       if (isAdmin) {
         el.querySelector('.btn-edit-mat')?.addEventListener('click', (e) => {
           e.stopPropagation();
-          openEditMatModal(mat, 'seasonal');
+          openEditMatModal(mat, target);
         });
         el.querySelector('.btn-delete-mat')?.addEventListener('click', (e) => {
           e.stopPropagation();
-          openDeleteMatModal(mat, 'seasonal');
+          openDeleteMatModal(mat, target);
         });
       }
 
       fragment.appendChild(el);
     });
 
-    seasonalList.appendChild(fragment);
+    listEl.appendChild(fragment);
+  }
+
+  function renderSeasonalMats() {
+    renderDatedMats({
+      mats: allSeasonalMats,
+      listEl: seasonalList,
+      searchEl: seasonalSearch,
+      countEl: seasonalCount,
+      filteredEl: seasonalFiltered,
+      target: 'seasonal',
+      emptyText: 'Brak mat sezonowych.'
+    });
   }
 
   document.getElementById('printSeasonalBtn').addEventListener('click', () => {
@@ -2805,6 +2867,59 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key === 'Escape') {
       seasonalSearch.value = '';
       renderSeasonalMats();
+    }
+  });
+
+  // ==================== OSTATNIO DODANE (z logo_mats) ====================
+  const RECENT_DAYS = 30;
+  let allRecentMats = [];
+  const recentList = document.getElementById('recentList');
+  const recentSearch = document.getElementById('recentSearch');
+  const recentCount = document.getElementById('recentCount');
+  const recentFiltered = document.getElementById('recentFiltered');
+
+  async function loadRecentMats() {
+    if (allRecentMats.length === 0) {
+      recentList.innerHTML = `<div class="empty-state"><div class="empty-state-text">Pobieranie danych z bazy...</div></div>`;
+    }
+
+    const since = new Date(Date.now() - RECENT_DAYS * 24 * 60 * 60 * 1000).toISOString();
+
+    try {
+      const { data, error } = await window.supabase
+        .from('logo_mats')
+        .select('*')
+        .gte('created_at', since)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      allRecentMats = data || [];
+      renderRecentMats();
+    } catch (error) {
+      console.error('Błąd pobierania ostatnio dodanych mat:', error);
+      showToast('Błąd pobierania ostatnio dodanych mat.', 'error');
+      recentList.innerHTML = `<div class="empty-state error"><div class="empty-state-text">Nie udało się pobrać danych.</div></div>`;
+    }
+  }
+
+  function renderRecentMats() {
+    renderDatedMats({
+      mats: allRecentMats,
+      listEl: recentList,
+      searchEl: recentSearch,
+      countEl: recentCount,
+      filteredEl: recentFiltered,
+      target: 'logo',
+      emptyText: `Brak mat dodanych w ciągu ostatnich ${RECENT_DAYS} dni.`
+    });
+  }
+
+  recentSearch.addEventListener('input', renderRecentMats);
+  recentSearch.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      recentSearch.value = '';
+      renderRecentMats();
     }
   });
   
@@ -5648,6 +5763,8 @@ document.addEventListener("DOMContentLoaded", () => {
         
         if (currentView === 'mats') {
           renderMats(newMats, matsSearch.value);
+        } else if (currentView === 'recent') {
+          loadRecentMats();
         }
         
         const logoMatNames = newMats.map(m => m.name).filter((v, i, a) => a.indexOf(v) === i).sort();
