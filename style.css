@@ -222,9 +222,17 @@ body.dark .theme-toggle:hover {
   left: 11px; 
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease; 
 }
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
 body.light .icon-sun { transform: rotate(0) scale(1); opacity: 1; }
-body.light .icon-moon { transform: rotate(90deg) scale(0); opacity: 0; }
-body.dark .icon-sun { transform: rotate(-90deg) scale(0); opacity: 0; }
+body.light .icon-moon,
+body.light .icon-pumpkin { transform: rotate(90deg) scale(0); opacity: 0; }
+body.dark .icon-sun,
+body.dark .icon-pumpkin { transform: rotate(-90deg) scale(0); opacity: 0; }
 body.dark .icon-moon { transform: rotate(0) scale(1); opacity: 1; }
 
 /* --- CENTRUM GŁÓWNE (HOME) --- */
@@ -1523,7 +1531,6 @@ body.dark #editAdvChangeDetails {
 
 /* === OPTYMALIZACJA MOBILE === */
 .theme-toggle,
-.theme-toggle svg,
 .view,
 .modal,
 .toast,
@@ -5278,10 +5285,6 @@ body.dark .mat-number-badge {
   opacity: 1;
 }
 
-.halloween-footer-pumpkin {
-  display: none;
-}
-
 @media (max-width: 640px) {
   .theme-menu {
     min-width: 0;
@@ -5289,7 +5292,7 @@ body.dark .mat-number-badge {
   }
 }
 
-/* ==================== MOTYW HALLOWEEN (okresowy, do 30.11.2026) ==================== */
+/* ==================== MOTYW HALLOWEEN (okresowy, do 1.11.2026, 23:59) ==================== */
 /* Pomarańczowe odpowiedniki turkusowych kolorów – działają tylko przy body.halloween */
 body.halloween {
   --primary: #ff8a1f;
@@ -6030,32 +6033,6 @@ body.halloween .app-header::after {
   100% { transform: translate3d(110vw, -30vh, 0) scale(1.1); opacity: 0.9; }
 }
 
-.hw-boo {
-  position: absolute;
-  left: 50%;
-  top: 45%;
-  width: min(220px, 50vw);
-  opacity: 0;
-  animation: hw-boo 1.8s ease forwards;
-}
-
-.hw-boo-text {
-  margin-top: 8px;
-  text-align: center;
-  font-size: 2.2rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  color: #fff;
-  text-shadow: 0 0 18px rgba(168, 85, 247, 0.8);
-}
-
-@keyframes hw-boo {
-  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
-  25% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.85; }
-  70% { transform: translate(-50%, -50%) scale(1); opacity: 0.85; }
-  100% { transform: translate(-50%, -60%) scale(1.05); opacity: 0; }
-}
-
 .hw-peek {
   position: absolute;
   bottom: 0;
@@ -6072,36 +6049,6 @@ body.halloween .app-header::after {
   0% { transform: translateY(100%); }
   25%, 70% { transform: translateY(35%); }
   100% { transform: translateY(100%); }
-}
-
-body.halloween .halloween-footer-pumpkin {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  min-height: 32px;
-  margin-left: 6px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  font-size: 18px;
-  vertical-align: middle;
-  cursor: pointer;
-}
-
-body.halloween .halloween-footer-pumpkin:hover {
-  transform: scale(1.2) rotate(-10deg);
-}
-
-body.halloween .halloween-footer-pumpkin.wiggle {
-  animation: hw-wiggle 0.5s ease;
-}
-
-@keyframes hw-wiggle {
-  0%, 100% { transform: rotate(0); }
-  25% { transform: rotate(-18deg) scale(1.15); }
-  75% { transform: rotate(18deg) scale(1.15); }
 }
 
 /* --- Telefon: mniej elementów, mniejsze dekoracje --- */
