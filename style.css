@@ -5850,12 +5850,12 @@ body.halloween .app-header::after {
 }
 
 body.halloween .app-header::before {
-  background-image: radial-gradient(circle at 11px 5px, #ffb347 0 3px, rgba(255, 138, 31, 0.45) 4px, transparent 6px);
+  background-image: radial-gradient(circle at 11px 5px, #ffb347 0 3px, rgba(255, 179, 71, 0.55) 4.5px, transparent 7px);
   animation: hw-twinkle 1.8s ease-in-out infinite alternate;
 }
 
 body.halloween .app-header::after {
-  background-image: radial-gradient(circle at 33px 5px, #c084fc 0 3px, rgba(168, 85, 247, 0.45) 4px, transparent 6px);
+  background-image: radial-gradient(circle at 33px 5px, #d8b4fe 0 3px, rgba(168, 85, 247, 0.5) 4.5px, transparent 7px);
   animation: hw-twinkle 1.8s ease-in-out infinite alternate-reverse;
 }
 
@@ -5868,14 +5868,21 @@ body.halloween .app-header::after {
 .hw-bg,
 .hw-overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
   overflow: hidden;
   pointer-events: none;
 }
 
+.hw-bg,
 .hw-bg *,
+.hw-overlay,
 .hw-overlay * {
   pointer-events: none;
+  transition: none !important;
 }
 
 .hw-bg { z-index: -1; }
@@ -5912,9 +5919,22 @@ body.halloween .app-header::after {
   width: 110px;
   height: 110px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #fff7d6 0%, #f5d68a 60%, #e0b05a 100%);
-  box-shadow: 0 0 60px 20px rgba(255, 214, 138, 0.16);
-  opacity: 0.5;
+  background:
+    radial-gradient(circle at 32% 38%, rgba(160, 120, 60, 0.28) 0 9%, transparent 10%),
+    radial-gradient(circle at 64% 60%, rgba(160, 120, 60, 0.22) 0 6%, transparent 7%),
+    radial-gradient(circle at 48% 26%, rgba(255, 255, 255, 0.45) 0 7%, transparent 8%),
+    radial-gradient(circle at 35% 35%, #fff7d6 0%, #f5d68a 58%, #e0b05a 100%);
+  box-shadow: 0 0 70px 22px rgba(255, 214, 138, 0.2);
+  opacity: 0.72;
+}
+
+.hw-mist {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 26%;
+  background: linear-gradient(to top, rgba(76, 29, 149, 0.28), transparent);
 }
 
 .hw-web {
@@ -5950,8 +5970,15 @@ body.halloween .app-header::after {
 
 .hw-pumpkin {
   position: absolute;
-  bottom: 6px;
+  bottom: 8px;
   opacity: 0.55;
+}
+
+@supports (height: 100svh) {
+  .hw-pumpkin {
+    bottom: auto;
+    top: calc(100svh - 132px);
+  }
 }
 
 .hw-pumpkin-1 { left: 2%; width: 120px; }
@@ -5960,24 +5987,23 @@ body.halloween .app-header::after {
 
 .hw-ghost {
   position: absolute;
-  left: 0;
-  width: 54px;
-  opacity: 0.38;
+  left: -20vw;
+  width: 58px;
+  opacity: 0.88;
   animation: hw-fly linear infinite;
-  will-change: transform;
 }
 
 .hw-ghost svg {
   animation: hw-bob 3s ease-in-out infinite alternate;
 }
 
-.hw-ghost-1 { top: 22%; animation-duration: 38s; animation-delay: -5s; }
-.hw-ghost-2 { top: 55%; width: 42px; animation-duration: 46s; animation-delay: -24s; animation-direction: reverse; }
-.hw-ghost-3 { top: 78%; width: 36px; animation-duration: 52s; animation-delay: -40s; }
+.hw-ghost-1 { top: 24%; animation-duration: 18s; animation-delay: -4s; }
+.hw-ghost-2 { top: 52%; width: 48px; animation-duration: 22s; animation-delay: -11s; animation-direction: reverse; }
+.hw-ghost-3 { top: 74%; width: 40px; animation-duration: 26s; animation-delay: -18s; }
 
 @keyframes hw-fly {
-  from { transform: translate3d(-12vw, 0, 0); }
-  to { transform: translate3d(112vw, -6vh, 0); }
+  from { left: -20vw; }
+  to { left: 110vw; }
 }
 
 @keyframes hw-bob {
@@ -5987,26 +6013,30 @@ body.halloween .app-header::after {
 
 .hw-bat {
   position: absolute;
-  left: 0;
-  width: 34px;
-  opacity: 0.6;
-  animation: hw-bat-fly 18s linear infinite;
-  will-change: transform;
+  left: -16vw;
+  width: 46px;
+  opacity: 0.95;
+  animation: hw-bat-fly 12s linear infinite;
 }
 
-.hw-bat svg {
+.hw-bat svg,
+.hw-swarm-bat svg {
   animation: hw-flap 0.25s ease-in-out infinite alternate;
 }
 
-.hw-bat-1 { top: 14%; animation-delay: -3s; }
-.hw-bat-2 { top: 34%; width: 26px; animation-duration: 24s; animation-delay: -15s; }
+.hw-pumpkin svg {
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.35));
+}
+
+.hw-bat-1 { top: 20%; animation-delay: -2s; }
+.hw-bat-2 { top: 40%; width: 36px; animation-duration: 15s; animation-delay: -8s; }
 
 @keyframes hw-bat-fly {
-  0% { transform: translate3d(-10vw, 0, 0); }
-  25% { transform: translate3d(20vw, -4vh, 0); }
-  50% { transform: translate3d(50vw, 3vh, 0); }
-  75% { transform: translate3d(80vw, -3vh, 0); }
-  100% { transform: translate3d(112vw, 2vh, 0); }
+  0% { left: -16vw; margin-top: 0; }
+  25% { margin-top: -18px; }
+  50% { margin-top: 14px; }
+  75% { margin-top: -10px; }
+  100% { left: 110vw; margin-top: 8px; }
 }
 
 @keyframes hw-flap {
@@ -6051,25 +6081,33 @@ body.halloween .app-header::after {
   100% { transform: translateY(100%); }
 }
 
-/* --- Telefon: mniej elementów, mniejsze dekoracje --- */
+/* --- Telefon: dekoracje nadal widoczne, dynie nie skaczą przy pasku przeglądarki --- */
 @media (max-width: 640px) {
   .hw-ghost-3,
-  .hw-bat-2,
   .hw-pumpkin-3 { display: none; }
-  .hw-ghost { width: 40px; }
+  .hw-ghost { width: 64px; opacity: 0.92; }
+  .hw-ghost-1 { top: 30%; animation-duration: 13s; }
+  .hw-ghost-2 { top: 58%; width: 52px; animation-duration: 16s; }
+  .hw-bat { width: 58px; }
+  .hw-bat-1 { top: 22%; animation-duration: 9s; }
+  .hw-bat-2 { top: 46%; width: 44px; animation-duration: 11s; }
   .hw-moon { top: 84px; width: 70px; height: 70px; }
   .hw-web { width: 90px; }
   .hw-spider { left: 58px; width: 16px; }
-  .hw-pumpkin-1 { width: 72px; }
-  .hw-pumpkin-2 { width: 58px; }
+  .hw-pumpkin { bottom: 8px; }
+  @supports (height: 100svh) {
+    .hw-pumpkin { bottom: auto; top: calc(100svh - 108px); }
+  }
+  .hw-pumpkin-1 { width: 84px; }
+  .hw-pumpkin-2 { width: 68px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hw-overlay { display: none; }
   .hw-bg *,
+  .hw-overlay *,
   body.halloween .app-header::before,
   body.halloween .app-header::after {
-    animation: none !important;
+    animation-duration: 28s !important;
   }
 }
 
